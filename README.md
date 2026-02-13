@@ -1,53 +1,177 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# EventGO API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Enterprise-grade event management SaaS backend built with **NestJS**, implementing **Clean Architecture** and **Domain-Driven Design (DDD)**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🏗️ Architecture
 
-## Description
+This project follows Clean Architecture principles with clear separation of concerns:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Domain Layer**: Business entities and rules (framework-agnostic)
+- **Application Layer**: Use cases and business logic orchestration
+- **Infrastructure Layer**: External concerns (database, HTTP, external services)
+- **Presentation Layer**: Controllers and DTOs
 
-## Project setup
+For complete architectural documentation, see [`docs/ARCHITECTURE_CONTEXT.md`](docs/ARCHITECTURE_CONTEXT.md).
 
-```bash
-$ npm install
+## 📁 Project Structure
+
+```
+src/
+├── config/              # Environment configuration and validation
+├── core/                # Cross-cutting concerns
+│   ├── decorators/      # Custom decorators (@Roles, @CurrentUser)
+│   ├── exceptions/      # Domain exceptions
+│   ├── filters/         # Global exception filters
+│   ├── guards/          # Authentication & authorization
+│   ├── interceptors/    # Response formatting, logging
+│   └── logger/          # Structured logging (Pino)
+└── modules/             # Feature modules
+    └── <feature>/
+        ├── application/use-cases/  # Business logic
+        ├── domain/
+        │   ├── entities/           # Domain models
+        │   └── rules/              # Business rules
+        ├── infra/repositories/     # Data access
+        ├── dto/                    # Request/response validation
+        ├── <feature>.controller.ts
+        └── <feature>.module.ts
 ```
 
-## Compile and run the project
+## 🚀 Getting Started
 
+### Prerequisites
+
+- Node.js >= 20.x
+- npm >= 10.x
+- PostgreSQL >= 14.x
+
+### Installation
+
+1. Clone the repository
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone <repository-url>
+cd eventgo/api
 ```
 
-## Run tests
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Configure environment variables
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Run database migrations (when Prisma is configured)
+```bash
+npx prisma migrate dev
+```
+
+### Development
 
 ```bash
-# unit tests
+# Start in watch mode
+npm run start:dev
+
+# The API will be available at http://localhost:3000/api/v1
+```
+
+### Build
+
+```bash
+# Production build
+npm run build
+
+# Start production server
+npm run start:prod
+```
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
+
+# Watch mode
+npm run test:watch
+```
+
+## 📝 Code Quality
+
+```bash
+# Lint with auto-fix
+npm run lint
+
+# Format code
+npm run format
+```
+
+## 🌐 API Documentation
+
+- **Base URL**: `http://localhost:3000/api/v1`
+- **Swagger**: `http://localhost:3000/api/docs` (when configured)
+
+### Response Format
+
+All endpoints follow a standardized response format:
+
+**Success:**
+```json
+{
+  "success": true,
+  "data": { ... },
+  "timestamp": "2026-02-13T10:30:00.000Z"
+}
+```
+
+**Error:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Error description"
+  },
+  "timestamp": "2026-02-13T10:30:00.000Z"
+}
+```
+
+## 🔐 Environment Variables
+
+See [`.env.example`](.env.example) for all available configuration options.
+
+Critical variables:
+- `DATABASE_URL`: PostgreSQL connection string
+- `JWT_SECRET`: JWT signing secret (min 32 chars)
+- `CORS_ORIGINS`: Allowed origins for CORS
+
+## 📚 Tech Stack
+
+- **Framework**: NestJS 11.x
+- **Language**: TypeScript 5.x
+- **ORM**: Prisma (to be configured)
+- **Validation**: class-validator, Zod
+- **Testing**: Jest
+- **Code Quality**: ESLint, Prettier
+
+## 🤝 Contributing
+
+1. Follow the architectural patterns documented in `docs/ARCHITECTURE_CONTEXT.md`
+2. Always create use cases instead of generic services
+3. Write tests for business logic
+4. Use conventional commits
+
+## 📄 License
+
+UNLICENSED - Private project
 $ npm run test
 
 # e2e tests
