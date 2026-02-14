@@ -1,13 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './core/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './core/filters/global-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  // Set Pino logger as default
+  app.useLogger(app.get(Logger));
+
   const configService = app.get(ConfigService);
+  const logger = app.get(Logger);
 
   // Global Prefix
   app.setGlobalPrefix('api/v1');
@@ -25,7 +31,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
 
   // Global Exception Filter
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalFilters(new GlobalExceptionFilter(logger));
 
   // CORS Configuration
   const corsOrigins = configService.get<string>('CORS_ORIGINS')?.split(',') || '*';
@@ -39,9 +45,9 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`🚀 Application running on: http://localhost:${port}/api/v1`);
-  console.log(`📦 Environment: ${nodeEnv}`);
-  console.log(
+  logger.log(`🚀 Application running on: http://localhost:${port}/api/v1`);
+  logger.log(`📦 Environment: ${nodeEnv}`);
+  logger.log(
     `🔒 CORS Origins: ${Array.isArray(corsOrigins) ? corsOrigins.join(', ') : corsOrigins}`,
   );
 }
