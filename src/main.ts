@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './core/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './core/filters/global-exception.filter';
@@ -43,10 +44,21 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 3000;
   const nodeEnv = configService.get<string>('NODE_ENV') || 'development';
 
+  // Swagger Configuration
+  const config = new DocumentBuilder()
+    .setTitle('EventGO API')
+    .setDescription('Sistema de gerenciamento de eventos')
+    .setVersion('v1')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
   await app.listen(port);
 
   logger.log(`🚀 Application running on: http://localhost:${port}/api/v1`);
   logger.log(`📦 Environment: ${nodeEnv}`);
+  logger.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
   logger.log(
     `🔒 CORS Origins: ${Array.isArray(corsOrigins) ? corsOrigins.join(', ') : corsOrigins}`,
   );
