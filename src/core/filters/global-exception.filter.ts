@@ -1,6 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Logger } from 'nestjs-pino';
+import { Prisma } from '../../../generated/prisma/client';
 
 interface ErrorResponse {
   success: false;
@@ -53,6 +54,83 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           ip: request.ip,
         });
       }
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      // Handle Prisma known errors
+      const prismaError = exception as Prisma.PrismaClientKnownRequestError;
+
+      switch (prismaError.code) {
+        case 'P2002':
+          // Unique constraint violation
+          status = HttpStatus.CONFLICT;
+          errorCode = 'DUPLICATE_ENTRY';
+          message = 'A record with this value already exists';
+          details = {
+            fields: prismaError.meta?.target,
+          };
+          break;
+        case 'P2025':
+          // Record not found
+          status = HttpStatus.NOT_FOUND;
+          errorCode = 'NOT_FOUND';
+          message = 'Record not found';
+          break;
+        case 'P2003':
+          // Foreign key constraint violation
+          status = HttpStatus.BAD_REQUEST;
+          errorCode = 'FOREIGN_KEY_VIOLATION';
+          message = 'Related record does not exist';
+          details = {
+            field: prismaError.meta?.field_name,
+          };
+          break;
+        case 'P2014':
+          // Invalid ID
+          status = HttpStatus.BAD_REQUEST;
+          errorCode = 'INVALID_ID';
+          message = 'The provided ID is invalid';
+          break;
+        case 'P2000':
+          // Value too long
+          status = HttpStatus.BAD_REQUEST;
+          errorCode = 'VALUE_TOO_LONG';
+          message = 'The provided value is too long';
+          details = {
+            column: prismaError.meta?.column_name,
+          };
+          break;
+        default:
+          // Other Prisma errors
+          status = HttpStatus.BAD_REQUEST;
+          errorCode = 'DATABASE_ERROR';
+          message = 'A database error occurred';
+      }
+
+      this.logger.warn({
+        msg: 'Prisma client error',
+        error: {
+          code: prismaError.code,
+          message: prismaError.message,
+          meta: prismaError.meta,
+        },
+        method: request.method,
+        url: request.url,
+        ip: request.ip,
+      });
+    } else if (exception instanceof Prisma.PrismaClientValidationError) {
+      // Handle Prisma validation errors
+      status = HttpStatus.BAD_REQUEST;
+      errorCode = 'VALIDATION_ERROR';
+      message = 'Invalid data provided to database';
+
+      this.logger.warn({
+        msg: 'Prisma validation error',
+        error: {
+          message: exception.message,
+        },
+        method: request.method,
+        url: request.url,
+        ip: request.ip,
+      });
     } else if (exception instanceof Error) {
       message = exception.message;
       errorCode = exception.constructor.name;

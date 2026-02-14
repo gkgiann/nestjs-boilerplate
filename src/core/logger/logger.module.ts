@@ -91,7 +91,12 @@ import type { IncomingMessage, ServerResponse } from 'http';
         autoLogging: {
           ignore: (req: IncomingMessage) => {
             // Ignore health check and metrics endpoints
-            return req.url === '/health' || req.url === '/metrics';
+            return (
+              req.url === '/health' ||
+              req.url === '/api/v1/health' ||
+              req.url === '/metrics' ||
+              req.url === '/api/v1/metrics'
+            );
           },
         },
 
