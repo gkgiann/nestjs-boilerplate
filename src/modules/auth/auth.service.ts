@@ -31,7 +31,7 @@ export class AuthService {
   ) {}
 
   /**
-   * Generate access and refresh tokens for a user
+   * Gerar tokens de acesso e refresh para um usuário
    */
   async generateTokens(payload: TokenPayload): Promise<GeneratedTokens> {
     const jwtPayload: JwtPayload = {
@@ -40,19 +40,19 @@ export class AuthService {
       role: payload.role,
     };
 
-    // Generate access token (short-lived)
+    // Gerar access token (curta duração)
     const accessToken = await this.jwtService.signAsync(jwtPayload, {
       secret: this.config.jwt.accessSecret,
       expiresIn: this.config.jwt.accessExpiration as any,
     });
 
-    // Generate refresh token (long-lived) - random string
+    // Gerar refresh token (longa duração) - string aleatória
     const refreshToken = this.generateRefreshToken();
 
-    // Hash the refresh token before storing
+    // Fazer hash do refresh token antes de armazenar
     const refreshTokenHash = await this.hashRefreshToken(refreshToken);
 
-    // Calculate refresh token expiration
+    // Calcular expiração do refresh token
     const refreshTokenExpiresAt = this.calculateRefreshTokenExpiration();
 
     return {
@@ -64,21 +64,21 @@ export class AuthService {
   }
 
   /**
-   * Hash a password using bcrypt
+   * Fazer hash de uma senha usando bcrypt
    */
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, this.config.security.bcryptSaltRounds);
   }
 
   /**
-   * Compare a plain password with a hashed password
+   * Comparar uma senha em texto plano com uma senha com hash
    */
   async comparePassword(password: string, hash: string): Promise<boolean> {
     return bcrypt.compare(password, hash);
   }
 
   /**
-   * Verify and decode an access token
+   * Verificar e decodificar um access token
    */
   async verifyAccessToken(token: string): Promise<JwtPayload> {
     return this.jwtService.verifyAsync<JwtPayload>(token, {
@@ -87,21 +87,21 @@ export class AuthService {
   }
 
   /**
-   * Generate a cryptographically secure refresh token
+   * Gerar um refresh token criptograficamente seguro
    */
   private generateRefreshToken(): string {
     return crypto.randomBytes(64).toString('hex');
   }
 
   /**
-   * Hash a refresh token using SHA256
+   * Fazer hash de um refresh token usando SHA256
    */
   async hashRefreshToken(token: string): Promise<string> {
     return crypto.createHash('sha256').update(token).digest('hex');
   }
 
   /**
-   * Calculate refresh token expiration date
+   * Calcular data de expiração do refresh token
    */
   private calculateRefreshTokenExpiration(): Date {
     const expirationString = this.config.jwt.refreshExpiration;
@@ -110,7 +110,7 @@ export class AuthService {
   }
 
   /**
-   * Parse expiration string (e.g., "7d", "24h") to milliseconds
+   * Converter string de expiração (ex: "7d", "24h") para milissegundos
    */
   private parseExpirationToMs(expiration: string): number {
     const value = parseInt(expiration.slice(0, -1), 10);

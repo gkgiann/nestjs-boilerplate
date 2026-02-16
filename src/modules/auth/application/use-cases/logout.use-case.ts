@@ -6,25 +6,25 @@ export class LogoutUseCase {
   constructor(private readonly refreshTokenRepository: RefreshTokenRepository) {}
 
   /**
-   * Log out user from all devices by revoking all refresh tokens
+   * Deslogar usuário de todos os dispositivos revogando todos os refresh tokens
    */
   async execute(userId: string): Promise<void> {
-    // Revoke all refresh tokens for this user
-    // This effectively logs the user out from all devices
+    // Revogar todos os refresh tokens deste usuário
+    // Isso efetivamente desloga o usuário de todos os dispositivos
     await this.refreshTokenRepository.revokeAllByUserId(userId);
 
-    // Note: Access tokens remain valid until they expire (stateless)
-    // In a production environment you might want to:
-    // 1. Add access tokens to a blacklist in Redis
-    // 2. Use shorter expiration times for access tokens
-    // 3. Implement token versioning
+    // Nota: Access tokens permanecem válidos até expirarem (stateless)
+    // Em um ambiente de produção você pode querer:
+    // 1. Adicionar access tokens a uma blacklist no Redis
+    // 2. Usar tempos de expiração mais curtos para access tokens
+    // 3. Implementar versionamento de tokens
   }
 
   /**
-   * Log out user from current device only (if token hash is provided)
+   * Deslogar usuário apenas do dispositivo atual (se o hash do token for fornecido)
    */
   async executeFromDevice(userId: string, tokenHash: string): Promise<void> {
-    // Revoke only the specific refresh token
+    // Revogar apenas o refresh token específico
     await this.refreshTokenRepository.revokeByTokenHash(tokenHash);
   }
 }

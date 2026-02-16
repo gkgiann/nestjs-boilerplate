@@ -9,7 +9,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
   imports: [
     PinoLoggerModule.forRoot({
       pinoHttp: {
-        // Request ID generation
+        // Geração de ID de requisição
         genReqId: (req, res) => {
           const existingId = req.id ?? req.headers['x-request-id'];
           if (existingId) return existingId;
@@ -18,10 +18,10 @@ import type { IncomingMessage, ServerResponse } from 'http';
           return id;
         },
 
-        // Custom log level
+        // Nível customizado de log
         level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
 
-        // Transport for pretty printing in development
+        // Transport para formatação bonita em desenvolvimento
         transport:
           process.env.NODE_ENV !== 'production'
             ? {
@@ -36,7 +36,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
               }
             : undefined,
 
-        // Custom serializers
+        // Serializadores customizados
         serializers: {
           req(req: IncomingMessage & { id?: string }) {
             const request = req as Request;
@@ -75,7 +75,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
           },
         },
 
-        // Custom log message
+        // Mensagem de log customizada
         customLogLevel: function (req: IncomingMessage, res: ServerResponse, err?: Error) {
           if (res.statusCode >= 400 && res.statusCode < 500) {
             return 'warn';
@@ -87,10 +87,10 @@ import type { IncomingMessage, ServerResponse } from 'http';
           return 'info';
         },
 
-        // Auto logging
+        // Logging automático
         autoLogging: {
           ignore: (req: IncomingMessage) => {
-            // Ignore health check and metrics endpoints
+            // Ignorar endpoints de health check e métricas
             return (
               req.url === '/health' ||
               req.url === '/api/v1/health' ||
@@ -100,7 +100,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
           },
         },
 
-        // Custom success message with response time
+        // Mensagem de sucesso customizada com tempo de resposta
         customSuccessMessage: function (req: IncomingMessage, res: ServerResponse) {
           if (res.statusCode === 404) {
             return `Resource not found`;
@@ -108,12 +108,12 @@ import type { IncomingMessage, ServerResponse } from 'http';
           return `${req.method} ${req.url} completed`;
         },
 
-        // Custom error message
+        // Mensagem de erro customizada
         customErrorMessage: function (req: IncomingMessage, res: ServerResponse, err: Error) {
           return `${req.method} ${req.url} failed with error: ${err.message}`;
         },
 
-        // Custom attribute keys for better readability in JSON
+        // Chaves de atributos customizadas para melhor legibilidade no JSON
         customAttributeKeys: {
           req: 'request',
           res: 'response',

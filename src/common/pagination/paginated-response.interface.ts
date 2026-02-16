@@ -1,17 +1,17 @@
 import { PaginationMeta } from './pagination-meta.interface';
 
 /**
- * Generic paginated response interface
- * @template T - The type of items in the response
+ * Interface genérica de resposta paginada
+ * @template T - O tipo dos itens na resposta
  */
 export interface PaginatedResponse<T> {
   /**
-   * Array of items for the current page
+   * Array de itens da página atual
    */
   items: T[];
 
   /**
-   * Pagination metadata
+   * Metadados de paginação
    */
   meta: PaginationMeta;
 }

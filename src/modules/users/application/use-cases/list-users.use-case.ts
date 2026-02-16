@@ -5,15 +5,15 @@ import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
 import { PaginatedResponse } from '@common/pagination';
 
 /**
- * List Users Use Case
- * Business logic for listing users with pagination
+ * Caso de Uso: Listar Usuários
+ * Lógica de negócio para listar usuários com paginação
  */
 @Injectable()
 export class ListUsersUseCase {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async execute(params: ListUsersDto): Promise<PaginatedResponse<SafeUserEntity>> {
-    // 1. Get paginated users from repository
+    // 1. Obter usuários paginados do repositório
     const result = await this.usersRepository.paginate({
       page: params.page ?? 1,
       limit: params.limit ?? 10,
@@ -22,13 +22,13 @@ export class ListUsersUseCase {
       search: params.search,
     });
 
-    // 2. Remove password from all users
+    // 2. Remover senha de todos os usuários
     const safeItems = result.items.map((user) => {
       const { password, ...safeUser } = user;
       return safeUser;
     });
 
-    // 3. Return paginated result without passwords
+    // 3. Retornar resultado paginado sem senhas
     return {
       items: safeItems,
       meta: result.meta,

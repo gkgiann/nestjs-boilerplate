@@ -8,7 +8,7 @@ import { TypedConfigService } from '@config/typed-config.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
-// Use Cases
+// Casos de Uso
 import {
   RegisterUseCase,
   LoginUseCase,
@@ -16,13 +16,13 @@ import {
   LogoutUseCase,
 } from './application/use-cases';
 
-// Repositories
+// Repositórios
 import { RefreshTokenRepository } from './infra/repositories';
 
 // Guards
 import { JwtAuthGuard, RolesGuard } from './guards';
 
-// Strategies
+// Estratégias
 import { JwtStrategy } from './strategies';
 
 @Module({
@@ -46,20 +46,20 @@ import { JwtStrategy } from './strategies';
     // Service
     AuthService,
 
-    // Use Cases
+    // Casos de Uso
     RegisterUseCase,
     LoginUseCase,
     RefreshTokenUseCase,
     LogoutUseCase,
 
-    // Repositories
+    // Repositórios
     RefreshTokenRepository,
 
     // Guards
     JwtAuthGuard,
     RolesGuard,
 
-    // Strategies
+    // Estratégias
     JwtStrategy,
   ],
   exports: [

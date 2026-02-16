@@ -25,7 +25,7 @@ export class RegisterUseCase {
   ) {}
 
   async execute(data: RegisterDto): Promise<RegisterResult> {
-    // 1. Check if user already exists
+    // 1. Verificar se o usuário já existe
     const existingUser = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -34,34 +34,34 @@ export class RegisterUseCase {
       throw new UserAlreadyExistsError(data.email);
     }
 
-    // 2. Hash the password
+    // 2. Fazer hash da senha
     const hashedPassword = await this.authService.hashPassword(data.password);
 
-    // 3. Create user in database
+    // 3. Criar usuário no banco de dados
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         password: hashedPassword,
-        role: 'USER', // Default role
+        role: 'USER', // Role padrão
       },
     });
 
-    // 4. Generate access and refresh tokens
+    // 4. Gerar tokens de acesso e refresh
     const tokens = await this.authService.generateTokens({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
 
-    // 5. Save refresh token to database
+    // 5. Salvar refresh token no banco de dados
     await this.refreshTokenRepository.create({
       userId: user.id,
       tokenHash: tokens.refreshTokenHash,
       expiresAt: tokens.refreshTokenExpiresAt,
     });
 
-    // 6. Return tokens and user data (without password)
+    // 6. Retornar tokens e dados do usuário (sem a senha)
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,

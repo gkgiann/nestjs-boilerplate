@@ -28,7 +28,7 @@ export class RefreshTokenRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Create a new refresh token
+   * Criar um novo refresh token
    */
   async create(data: CreateRefreshTokenData): Promise<RefreshTokenEntity> {
     return this.prisma.refreshToken.create({
@@ -44,7 +44,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Find a refresh token by its hash
+   * Buscar um refresh token pelo seu hash
    */
   async findByTokenHash(tokenHash: string): Promise<RefreshTokenEntity | null> {
     return this.prisma.refreshToken.findFirst({
@@ -59,7 +59,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Find all valid refresh tokens for a user (supports multiple devices)
+   * Buscar todos os refresh tokens válidos de um usuário (suporta múltiplos dispositivos)
    */
   async findByUserId(userId: string): Promise<RefreshTokenEntity[]> {
     return this.prisma.refreshToken.findMany({
@@ -77,7 +77,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Revoke a specific refresh token
+   * Revogar um refresh token específico
    */
   async revokeByTokenHash(tokenHash: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({
@@ -87,7 +87,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Revoke all refresh tokens for a user (logout from all devices)
+   * Revogar todos os refresh tokens de um usuário (logout de todos os dispositivos)
    */
   async revokeAllByUserId(userId: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({
@@ -97,7 +97,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Delete a specific refresh token by hash
+   * Deletar um refresh token específico pelo hash
    */
   async deleteByTokenHash(tokenHash: string): Promise<void> {
     await this.prisma.refreshToken.deleteMany({
@@ -106,7 +106,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Delete all refresh tokens for a user
+   * Deletar todos os refresh tokens de um usuário
    */
   async deleteAllByUserId(userId: string): Promise<void> {
     await this.prisma.refreshToken.deleteMany({
@@ -115,7 +115,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Delete all expired refresh tokens (cleanup job)
+   * Deletar todos os refresh tokens expirados (job de limpeza)
    */
   async deleteExpired(): Promise<number> {
     const result = await this.prisma.refreshToken.deleteMany({
@@ -130,7 +130,7 @@ export class RefreshTokenRepository {
   }
 
   /**
-   * Delete all revoked refresh tokens (cleanup job)
+   * Deletar todos os refresh tokens revogados (job de limpeza)
    */
   async deleteRevoked(): Promise<number> {
     const result = await this.prisma.refreshToken.deleteMany({

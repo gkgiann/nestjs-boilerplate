@@ -77,7 +77,7 @@ export class UsersController {
     description: 'Usuário não encontrado',
   })
   async findOne(@Param('id') id: string, @CurrentUser() currentUser: CurrentUserData) {
-    // Check authorization: only ADMIN or owner can view
+    // Verificar autorização: somente ADMIN ou proprietário pode visualizar
     if (currentUser.role !== 'ADMIN' && currentUser.id !== id) {
       throw new ForbiddenException('Você só pode visualizar seu próprio perfil');
     }
@@ -105,12 +105,12 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() currentUser: CurrentUserData,
   ) {
-    // Check authorization: only ADMIN or owner can update
+    // Verificar autorização: somente ADMIN ou proprietário pode atualizar
     if (currentUser.role !== 'ADMIN' && currentUser.id !== id) {
       throw new ForbiddenException('Você só pode atualizar seu próprio perfil');
     }
 
-    // Non-admin users cannot change their role
+    // Usuários não-admin não podem alterar seu próprio papel
     if (currentUser.role !== 'ADMIN' && updateUserDto.role) {
       throw new ForbiddenException('Você não pode alterar seu próprio papel');
     }

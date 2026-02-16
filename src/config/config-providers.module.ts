@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypedConfigService } from './typed-config.service';
 
 /**
- * Configuration providers module
- * Import this module if you need TypedConfigService in a non-global context
- * Note: ConfigModule is already global, this is only needed for TypedConfigService
+ * Módulo de provedores de configuração
+ * Importe este módulo se precisar de TypedConfigService em um contexto não-global
+ * Nota: ConfigModule já é global, isto só é necessário para TypedConfigService
  */
 @Module({
   providers: [TypedConfigService],

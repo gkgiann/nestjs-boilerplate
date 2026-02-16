@@ -28,15 +28,15 @@ export interface PaginationParams {
 }
 
 /**
- * Users Repository
- * Encapsulates all database operations for User entity
+ * Repositório de Usuários
+ * Encapsula todas as operações de banco de dados para a entidade User
  */
 @Injectable()
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Find user by ID
+   * Buscar usuário por ID
    */
   async findById(id: string): Promise<UserEntity | null> {
     return this.prisma.user.findUnique({
@@ -55,7 +55,7 @@ export class UsersRepository {
   }
 
   /**
-   * Find user by email
+   * Buscar usuário por email
    */
   async findByEmail(email: string): Promise<UserEntity | null> {
     return this.prisma.user.findUnique({
@@ -74,7 +74,7 @@ export class UsersRepository {
   }
 
   /**
-   * Create a new user
+   * Criar um novo usuário
    */
   async create(data: CreateUserData): Promise<UserEntity> {
     return this.prisma.user.create({
@@ -98,7 +98,7 @@ export class UsersRepository {
   }
 
   /**
-   * Update user by ID
+   * Atualizar usuário por ID
    */
   async update(id: string, data: UpdateUserData): Promise<UserEntity> {
     return this.prisma.user.update({
@@ -118,7 +118,7 @@ export class UsersRepository {
   }
 
   /**
-   * Delete user by ID (soft delete by setting isActive to false)
+   * Deletar usuário por ID (soft delete definindo isActive como false)
    */
   async delete(id: string): Promise<void> {
     await this.prisma.user.update({
@@ -128,7 +128,7 @@ export class UsersRepository {
   }
 
   /**
-   * Hard delete user by ID
+   * Deletar permanentemente usuário por ID
    */
   async hardDelete(id: string): Promise<void> {
     await this.prisma.user.delete({
@@ -137,7 +137,7 @@ export class UsersRepository {
   }
 
   /**
-   * List users with pagination and filtering
+   * Listar usuários com paginação e filtros
    */
   async paginate(params: PaginationParams): Promise<PaginatedResponse<UserEntity>> {
     const select = {
@@ -161,14 +161,14 @@ export class UsersRepository {
   }
 
   /**
-   * Count total users
+   * Contar total de usuários
    */
   async count(): Promise<number> {
     return this.prisma.user.count();
   }
 
   /**
-   * Check if email exists
+   * Verificar se o email existe
    */
   async emailExists(email: string, excludeId?: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({

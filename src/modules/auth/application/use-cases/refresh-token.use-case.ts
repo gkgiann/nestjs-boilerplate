@@ -19,30 +19,30 @@ export class RefreshTokenUseCase {
   ) {}
 
   async execute(data: RefreshTokenDto): Promise<RefreshTokenResult> {
-    // 1. Hash the incoming refresh token
+    // 1. Fazer hash do refresh token recebido
     const tokenHash = await this.authService.hashRefreshToken(data.refreshToken);
 
-    // 2. Find refresh token in database by hash
+    // 2. Buscar refresh token no banco de dados pelo hash
     const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash);
 
-    // 3. Validate token exists and is not expired
+    // 3. Validar que o token existe e não está expirado
     if (!storedToken) {
       throw new RefreshTokenInvalidError();
     }
 
-    // 4. Check if token is expired (double check, repository should filter)
+    // 4. Verificar se o token está expirado (verificação adicional, o repositório já deveria filtrar)
     if (storedToken.expiresAt < new Date()) {
-      // Clean up expired token
+      // Limpar token expirado
       await this.refreshTokenRepository.deleteByTokenHash(tokenHash);
       throw new RefreshTokenInvalidError();
     }
 
-    // 5. Check if token is revoked
+    // 5. Verificar se o token foi revogado
     if (storedToken.isRevoked) {
       throw new RefreshTokenInvalidError();
     }
 
-    // 6. Get associated user
+    // 6. Obter usuário associado
     const user = await this.prisma.user.findUnique({
       where: { id: storedToken.userId },
     });
@@ -51,17 +51,17 @@ export class RefreshTokenUseCase {
       throw new RefreshTokenInvalidError();
     }
 
-    // 7. Generate new tokens (refresh token rotation)
+    // 7. Gerar novos tokens (rotação de refresh token)
     const newTokens = await this.authService.generateTokens({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
 
-    // 8. Delete old refresh token (rotation)
+    // 8. Deletar refresh token antigo (rotação)
     await this.refreshTokenRepository.deleteByTokenHash(tokenHash);
 
-    // 9. Save new refresh token to database
+    // 9. Salvar novo refresh token no banco de dados
     await this.refreshTokenRepository.create({
       userId: user.id,
       tokenHash: newTokens.refreshTokenHash,
@@ -71,7 +71,7 @@ export class RefreshTokenUseCase {
       userAgent: storedToken.userAgent || undefined,
     });
 
-    // 10. Return new tokens
+    // 10. Retornar novos tokens
     return {
       accessToken: newTokens.accessToken,
       refreshToken: newTokens.refreshToken,

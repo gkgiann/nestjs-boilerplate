@@ -3,7 +3,7 @@ import { DatabaseModule } from '@core/database';
 import { AuthModule } from '@modules/auth/auth.module';
 import { UsersController } from './users.controller';
 
-// Use Cases
+// Casos de Uso
 import {
   CreateUserUseCase,
   UpdateUserUseCase,
@@ -12,17 +12,17 @@ import {
   ListUsersUseCase,
 } from './application/use-cases';
 
-// Repositories
+// Repositórios
 import { UsersRepository } from './infra/repositories';
 
 @Module({
   imports: [DatabaseModule, AuthModule],
   controllers: [UsersController],
   providers: [
-    // Repository
+    // Repositório
     UsersRepository,
 
-    // Use Cases
+    // Casos de Uso
     CreateUserUseCase,
     UpdateUserUseCase,
     DeleteUserUseCase,
@@ -30,7 +30,7 @@ import { UsersRepository } from './infra/repositories';
     ListUsersUseCase,
   ],
   exports: [
-    // Export repository for use in other modules
+    // Exportar repositório para uso em outros módulos
     UsersRepository,
   ],
 })

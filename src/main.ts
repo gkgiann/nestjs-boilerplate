@@ -10,16 +10,16 @@ import { GlobalExceptionFilter } from './core/filters/global-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
-  // Set Pino logger as default
+  // Definir logger Pino como padrão
   app.useLogger(app.get(Logger));
 
   const configService = app.get(ConfigService);
   const logger = app.get(Logger);
 
-  // Global Prefix
+  // Prefixo Global
   app.setGlobalPrefix('api/v1');
 
-  // Global Validation Pipe
+  // Validation Pipe Global
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -28,13 +28,13 @@ async function bootstrap() {
     }),
   );
 
-  // Global Interceptors
+  // Interceptors Globais
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  // Global Exception Filter
+  // Exception Filter Global
   app.useGlobalFilters(new GlobalExceptionFilter(logger));
 
-  // CORS Configuration
+  // Configuração CORS
   const corsOrigins = configService.get<string>('CORS_ORIGINS')?.split(',') || '*';
   app.enableCors({
     origin: corsOrigins,
@@ -44,7 +44,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 3000;
   const nodeEnv = configService.get<string>('NODE_ENV') || 'development';
 
-  // Swagger Configuration
+  // Configuração Swagger
   const config = new DocumentBuilder()
     .setTitle('NestJS Boilerplate API')
     .setDescription(

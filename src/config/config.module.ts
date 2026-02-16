@@ -3,8 +3,8 @@ import { envSchema } from './env.schema';
 import { configurations } from './configuration';
 
 /**
- * Global configuration module
- * Validates environment variables on startup and provides type-safe config access
+ * Módulo de configuração global
+ * Valida variáveis de ambiente na inicialização e fornece acesso com tipagem segura
  */
 export const ConfigModule = NestConfigModule.forRoot({
   isGlobal: true,
@@ -19,6 +19,6 @@ export const ConfigModule = NestConfigModule.forRoot({
     }
   },
   validationOptions: {
-    abortEarly: false, // Show all validation errors
+    abortEarly: false, // Mostrar todos os erros de validação
   },
 });

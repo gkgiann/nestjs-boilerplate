@@ -8,8 +8,8 @@ export enum SortOrder {
 }
 
 /**
- * Base DTO for pagination queries
- * Extend this class in your module-specific DTOs
+ * DTO Base para queries de paginação
+ * Estenda esta classe nos DTOs específicos do seu módulo
  */
 export class PaginationQueryDto {
   @ApiPropertyOptional({

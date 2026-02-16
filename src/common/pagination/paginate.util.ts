@@ -2,7 +2,7 @@ import { PaginatedResponse } from './paginated-response.interface';
 import { SortOrder } from './pagination-query.dto';
 
 /**
- * Pagination options interface
+ * Interface de opções de paginação
  */
 export interface PaginateOptions {
   page: number;
@@ -12,14 +12,14 @@ export interface PaginateOptions {
 }
 
 /**
- * Generic pagination utility function for Prisma models
+ * Função utilitária genérica de paginação para modelos Prisma
  *
- * @template T - The type of items being paginated
- * @param model - Prisma model delegate (e.g., prisma.user)
- * @param options - Pagination options (page, limit, sortBy, order)
- * @param where - Optional Prisma where clause for filtering
- * @param select - Optional Prisma select clause for field selection
- * @returns Paginated response with items and metadata
+ * @template T - O tipo dos itens sendo paginados
+ * @param model - Delegate do modelo Prisma (ex: prisma.user)
+ * @param options - Opções de paginação (page, limit, sortBy, order)
+ * @param where - Cláusula where do Prisma opcional para filtragem
+ * @param select - Cláusula select do Prisma opcional para seleção de campos
+ * @returns Resposta paginada com itens e metadados
  *
  * @example
  * ```typescript
@@ -39,14 +39,14 @@ export async function paginate<T>(
 ): Promise<PaginatedResponse<T>> {
   const { page, limit, sortBy = 'createdAt', order = SortOrder.DESC } = options;
 
-  // Calculate pagination offsets
+  // Calcular offsets de paginação
   const skip = (page - 1) * limit;
   const take = limit;
 
-  // Build orderBy clause
+  // Construir cláusula orderBy
   const orderBy = sortBy ? { [sortBy]: order } : undefined;
 
-  // Build query options
+  // Construir opções de query
   const queryOptions: any = {
     skip,
     take,
@@ -54,15 +54,15 @@ export async function paginate<T>(
     orderBy,
   };
 
-  // Add select if provided
+  // Adicionar select se fornecido
   if (select) {
     queryOptions.select = select;
   }
 
-  // Execute queries in parallel for better performance
+  // Executar queries em paralelo para melhor performance
   const [items, total] = await Promise.all([model.findMany(queryOptions), model.count({ where })]);
 
-  // Calculate total pages
+  // Calcular total de páginas
   const totalPages = Math.ceil(total / limit);
 
   return {
@@ -77,16 +77,16 @@ export async function paginate<T>(
 }
 
 /**
- * Pagination utility with search support
- * Extends the base paginate function with search functionality
+ * Utilitário de paginação com suporte a busca
+ * Estende a função base de paginação com funcionalidade de busca
  *
- * @template T - The type of items being paginated
- * @param model - Prisma model delegate
- * @param options - Pagination options with optional search
- * @param searchFields - Array of field names to search in
- * @param baseWhere - Optional base where clause to combine with search
- * @param select - Optional Prisma select clause
- * @returns Paginated response with items and metadata
+ * @template T - O tipo dos itens sendo paginados
+ * @param model - Delegate do modelo Prisma
+ * @param options - Opções de paginação com busca opcional
+ * @param searchFields - Array com nomes dos campos para buscar
+ * @param baseWhere - Cláusula where base opcional para combinar com busca
+ * @param select - Cláusula select do Prisma opcional
+ * @returns Resposta paginada com itens e metadados
  *
  * @example
  * ```typescript
@@ -107,7 +107,7 @@ export async function paginateWithSearch<T>(
 ): Promise<PaginatedResponse<T>> {
   const { search, ...paginateOptions } = options;
 
-  // Build where clause with search
+  // Construir cláusula where com busca
   let where = baseWhere || {};
 
   if (search && searchFields.length > 0) {

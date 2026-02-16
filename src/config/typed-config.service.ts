@@ -11,10 +11,10 @@ import {
 } from './configuration';
 
 /**
- * Type-safe configuration service
- * Provides strongly-typed access to configuration values
+ * Serviço de configuração com tipagem segura
+ * Fornece acesso fortemente tipado aos valores de configuração
  *
- * Usage example:
+ * Exemplo de uso:
  * ```typescript
  * constructor(private configService: TypedConfigService) {}
  *
@@ -55,21 +55,21 @@ export class TypedConfigService {
   }
 
   /**
-   * Check if application is running in production mode
+   * Verificar se a aplicação está rodando em modo de produção
    */
   get isProduction(): boolean {
     return this.app.nodeEnv === 'production';
   }
 
   /**
-   * Check if application is running in development mode
+   * Verificar se a aplicação está rodando em modo de desenvolvimento
    */
   get isDevelopment(): boolean {
     return this.app.nodeEnv === 'development';
   }
 
   /**
-   * Check if application is running in test mode
+   * Verificar se a aplicação está rodando em modo de teste
    */
   get isTest(): boolean {
     return this.app.nodeEnv === 'test';

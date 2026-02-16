@@ -1,8 +1,8 @@
 import { UserRole } from '../../../../../generated/prisma/enums';
 
 /**
- * User Domain Entity
- * Represents a user in the domain layer (framework-agnostic)
+ * Entidade de Domínio de Usuário
+ * Representa um usuário na camada de domínio (independente de framework)
  */
 export interface UserEntity {
   id: string;
@@ -16,6 +16,6 @@ export interface UserEntity {
 }
 
 /**
- * User entity without sensitive data (for responses)
+ * Entidade de usuário sem dados sensíveis (para respostas)
  */
 export type SafeUserEntity = Omit<UserEntity, 'password'>;

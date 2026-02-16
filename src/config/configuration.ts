@@ -80,7 +80,7 @@ export const paymentConfig = registerAs(
   }),
 );
 
-// Type definitions
+// Definições de tipos
 export interface AppConfig {
   nodeEnv: 'development' | 'production' | 'test';
   port: number;

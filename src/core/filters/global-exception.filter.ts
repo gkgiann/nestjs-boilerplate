@@ -40,7 +40,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = exception.message;
       }
 
-      // Log expected HTTP exceptions as warnings
+      // Logar exceções HTTP esperadas como avisos
       if (status >= HttpStatus.BAD_REQUEST && status < HttpStatus.INTERNAL_SERVER_ERROR) {
         this.logger.warn({
           msg: 'Client error',
@@ -55,12 +55,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         });
       }
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      // Handle Prisma known errors
+      // Tratar erros conhecidos do Prisma
       const prismaError = exception;
 
       switch (prismaError.code) {
         case 'P2002':
-          // Unique constraint violation
+          // Violação de restrição de unicidade
           status = HttpStatus.CONFLICT;
           errorCode = 'DUPLICATE_ENTRY';
           message = 'A record with this value already exists';
@@ -69,13 +69,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           };
           break;
         case 'P2025':
-          // Record not found
+          // Registro não encontrado
           status = HttpStatus.NOT_FOUND;
           errorCode = 'NOT_FOUND';
           message = 'Record not found';
           break;
         case 'P2003':
-          // Foreign key constraint violation
+          // Violação de restrição de chave estrangeira
           status = HttpStatus.BAD_REQUEST;
           errorCode = 'FOREIGN_KEY_VIOLATION';
           message = 'Related record does not exist';
@@ -84,13 +84,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           };
           break;
         case 'P2014':
-          // Invalid ID
+          // ID inválido
           status = HttpStatus.BAD_REQUEST;
           errorCode = 'INVALID_ID';
           message = 'The provided ID is invalid';
           break;
         case 'P2000':
-          // Value too long
+          // Valor muito longo
           status = HttpStatus.BAD_REQUEST;
           errorCode = 'VALUE_TOO_LONG';
           message = 'The provided value is too long';
@@ -99,7 +99,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           };
           break;
         default:
-          // Other Prisma errors
+          // Outros erros do Prisma
           status = HttpStatus.BAD_REQUEST;
           errorCode = 'DATABASE_ERROR';
           message = 'A database error occurred';
@@ -117,7 +117,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ip: request.ip,
       });
     } else if (exception instanceof Prisma.PrismaClientValidationError) {
-      // Handle Prisma validation errors
+      // Tratar erros de validação do Prisma
       status = HttpStatus.BAD_REQUEST;
       errorCode = 'VALIDATION_ERROR';
       message = 'Invalid data provided to database';
@@ -135,7 +135,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message = exception.message;
       errorCode = exception.constructor.name;
 
-      // Log unexpected errors with full stack trace
+      // Logar erros inesperados com stack trace completo
       this.logger.error({
         msg: 'Unexpected error occurred',
         error: {
@@ -149,7 +149,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         body: request.body as unknown,
       });
     } else {
-      // Log completely unknown errors
+      // Logar erros completamente desconhecidos
       this.logger.error({
         msg: 'Unknown error occurred',
         error: String(exception),

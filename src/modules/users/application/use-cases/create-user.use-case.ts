@@ -5,8 +5,8 @@ import { CreateUserDto } from '@modules/users/dto';
 import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
 
 /**
- * Create User Use Case
- * Business logic for creating a new user
+ * Caso de Uso: Criar Usuário
+ * Lógica de negócio para criar um novo usuário
  */
 @Injectable()
 export class CreateUserUseCase {
@@ -16,17 +16,17 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(data: CreateUserDto): Promise<SafeUserEntity> {
-    // 1. Check if email already exists
+    // 1. Verificar se o email já existe
     const emailExists = await this.usersRepository.emailExists(data.email);
 
     if (emailExists) {
       throw new ConflictException('A user with this email already exists');
     }
 
-    // 2. Hash password
+    // 2. Fazer hash da senha
     const hashedPassword = await this.authService.hashPassword(data.password);
 
-    // 3. Create user
+    // 3. Criar usuário
     const user = await this.usersRepository.create({
       name: data.name,
       email: data.email,
@@ -34,7 +34,7 @@ export class CreateUserUseCase {
       role: data.role,
     });
 
-    // 4. Return user without password
+    // 4. Retornar usuário sem a senha
     const { password, ...safeUser } = user;
     return safeUser;
   }

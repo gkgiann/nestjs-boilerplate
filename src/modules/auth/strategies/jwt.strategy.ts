@@ -5,7 +5,7 @@ import { PrismaService } from '@core/database';
 import { TypedConfigService } from '@config/typed-config.service';
 
 export interface JwtPayload {
-  sub: string; // userId
+  sub: string; // ID do usuário
   email: string;
   role: string;
 }
@@ -31,11 +31,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   /**
-   * Validates the JWT payload and returns the user
-   * This method is called automatically by Passport after verifying the JWT signature
+   * Valida o payload do JWT e retorna o usuário
+   * Este método é chamado automaticamente pelo Passport após verificar a assinatura do JWT
    */
   async validate(payload: JwtPayload): Promise<ValidatedUser> {
-    // 1. Find user in database by ID from token payload
+    // 1. Buscar usuário no banco de dados pelo ID do payload do token
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       select: {
@@ -47,22 +47,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
 
-    // 2. Validate user exists
+    // 2. Validar que o usuário existe
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    // 3. Validate user is active
+    // 3. Validar que o usuário está ativo
     if (!user.isActive) {
       throw new UnauthorizedException('User account is inactive');
     }
 
-    // 4. Validate email hasn't changed (security check)
+    // 4. Validar que o email não mudou (verificação de segurança)
     if (user.email !== payload.email) {
       throw new UnauthorizedException('Token email mismatch');
     }
 
-    // 5. Return user data (will be attached to request.user)
+    // 5. Retornar dados do usuário (será anexado a request.user)
     return {
       id: user.id,
       name: user.name,

@@ -5,8 +5,8 @@ import { UpdateUserDto } from '@modules/users/dto';
 import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
 
 /**
- * Update User Use Case
- * Business logic for updating an existing user
+ * Caso de Uso: Atualizar Usuário
+ * Lógica de negócio para atualizar um usuário existente
  */
 @Injectable()
 export class UpdateUserUseCase {
@@ -16,14 +16,14 @@ export class UpdateUserUseCase {
   ) {}
 
   async execute(id: string, data: UpdateUserDto): Promise<SafeUserEntity> {
-    // 1. Check if user exists
+    // 1. Verificar se o usuário existe
     const user = await this.usersRepository.findById(id);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // 2. If email is being updated, check if it's already in use
+    // 2. Se o email está sendo atualizado, verificar se já está em uso
     if (data.email && data.email !== user.email) {
       const emailExists = await this.usersRepository.emailExists(data.email, id);
 
@@ -32,16 +32,16 @@ export class UpdateUserUseCase {
       }
     }
 
-    // 3. Hash password if it's being updated
+    // 3. Fazer hash da senha se estiver sendo atualizada
     const updateData = { ...data };
     if (data.password) {
       updateData.password = await this.authService.hashPassword(data.password);
     }
 
-    // 4. Update user
+    // 4. Atualizar usuário
     const updatedUser = await this.usersRepository.update(id, updateData);
 
-    // 5. Return user without password
+    // 5. Retornar usuário sem a senha
     const { password, ...safeUser } = updatedUser;
     return safeUser;
   }

@@ -1,25 +1,25 @@
 /**
- * Pagination metadata interface
- * Contains information about the current page and total results
+ * Interface de metadados de paginação
+ * Contém informações sobre a página atual e total de resultados
  */
 export interface PaginationMeta {
   /**
-   * Current page number
+   * Número da página atual
    */
   page: number;
 
   /**
-   * Number of items per page
+   * Número de itens por página
    */
   limit: number;
 
   /**
-   * Total number of items across all pages
+   * Número total de itens em todas as páginas
    */
   total: number;
 
   /**
-   * Total number of pages available
+   * Número total de páginas disponíveis
    */
   totalPages: number;
 }
