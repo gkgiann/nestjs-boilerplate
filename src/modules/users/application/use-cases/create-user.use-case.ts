@@ -1,5 +1,5 @@
-import { Injectable, ConflictException } from '@nestjs/common';
-import { AuthService } from '@modules/auth/auth.service';
+import { Injectable, ConflictException, Inject } from '@nestjs/common';
+import { type PasswordHasher } from '@common/security';
 import { UsersRepository } from '@modules/users/infra/repositories';
 import { CreateUserDto } from '@modules/users/dto';
 import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
@@ -12,7 +12,8 @@ import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
 export class CreateUserUseCase {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly authService: AuthService,
+    @Inject('PasswordHasher')
+    private readonly passwordHasher: PasswordHasher,
   ) {}
 
   async execute(data: CreateUserDto): Promise<SafeUserEntity> {
@@ -24,7 +25,7 @@ export class CreateUserUseCase {
     }
 
     // 2. Fazer hash da senha
-    const hashedPassword = await this.authService.hashPassword(data.password);
+    const hashedPassword = await this.passwordHasher.hash(data.password);
 
     // 3. Criar usuário
     const user = await this.usersRepository.create({

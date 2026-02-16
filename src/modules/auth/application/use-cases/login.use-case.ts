@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '@core/database';
+import { type PasswordHasher } from '@common/security';
 import { LoginDto } from '@modules/auth/dto';
 import { InvalidCredentialsError } from '@modules/auth/domain/errors';
 import { AuthService } from '@modules/auth/auth.service';
@@ -22,6 +23,8 @@ export class LoginUseCase {
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
     private readonly refreshTokenRepository: RefreshTokenRepository,
+    @Inject('PasswordHasher')
+    private readonly passwordHasher: PasswordHasher,
   ) {}
 
   async execute(data: LoginDto): Promise<LoginResult> {
@@ -41,7 +44,7 @@ export class LoginUseCase {
     }
 
     // 4. Comparar hash da senha
-    const isPasswordValid = await this.authService.comparePassword(data.password, user.password);
+    const isPasswordValid = await this.passwordHasher.compare(data.password, user.password);
 
     if (!isPasswordValid) {
       throw new InvalidCredentialsError();

@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '@core/database';
+import { type PasswordHasher } from '@common/security';
 import { RegisterDto } from '@modules/auth/dto';
 import { UserAlreadyExistsError } from '@modules/auth/domain/errors';
 import { AuthService } from '@modules/auth/auth.service';
@@ -22,6 +23,8 @@ export class RegisterUseCase {
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
     private readonly refreshTokenRepository: RefreshTokenRepository,
+    @Inject('PasswordHasher')
+    private readonly passwordHasher: PasswordHasher,
   ) {}
 
   async execute(data: RegisterDto): Promise<RegisterResult> {
@@ -35,7 +38,7 @@ export class RegisterUseCase {
     }
 
     // 2. Fazer hash da senha
-    const hashedPassword = await this.authService.hashPassword(data.password);
+    const hashedPassword = await this.passwordHasher.hash(data.password);
 
     // 3. Criar usuário no banco de dados
     const user = await this.prisma.user.create({

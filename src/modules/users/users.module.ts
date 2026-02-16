@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '@core/database';
-import { AuthModule } from '@modules/auth/auth.module';
+import { SecurityModule } from '@common/security';
 import { UsersController } from './users.controller';
 
 // Casos de Uso
@@ -16,7 +16,7 @@ import {
 import { UsersRepository } from './infra/repositories';
 
 @Module({
-  imports: [DatabaseModule, AuthModule],
+  imports: [DatabaseModule, SecurityModule],
   controllers: [UsersController],
   providers: [
     // Repositório

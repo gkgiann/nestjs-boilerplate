@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { AuthService } from '@modules/auth/auth.service';
+import { Injectable, NotFoundException, ConflictException, Inject } from '@nestjs/common';
+import { type PasswordHasher } from '@common/security';
 import { UsersRepository } from '@modules/users/infra/repositories';
 import { UpdateUserDto } from '@modules/users/dto';
 import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
@@ -12,7 +12,8 @@ import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
 export class UpdateUserUseCase {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly authService: AuthService,
+    @Inject('PasswordHasher')
+    private readonly passwordHasher: PasswordHasher,
   ) {}
 
   async execute(id: string, data: UpdateUserDto): Promise<SafeUserEntity> {
@@ -35,7 +36,7 @@ export class UpdateUserUseCase {
     // 3. Fazer hash da senha se estiver sendo atualizada
     const updateData = { ...data };
     if (data.password) {
-      updateData.password = await this.authService.hashPassword(data.password);
+      updateData.password = await this.passwordHasher.hash(data.password);
     }
 
     // 4. Atualizar usuário

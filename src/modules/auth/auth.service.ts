@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TypedConfigService } from '@config/typed-config.service';
-import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
 export interface TokenPayload {
@@ -61,20 +60,6 @@ export class AuthService {
       refreshTokenHash,
       refreshTokenExpiresAt,
     };
-  }
-
-  /**
-   * Fazer hash de uma senha usando bcrypt
-   */
-  async hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, this.config.security.bcryptSaltRounds);
-  }
-
-  /**
-   * Comparar uma senha em texto plano com uma senha com hash
-   */
-  async comparePassword(password: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(password, hash);
   }
 
   /**
