@@ -18,12 +18,17 @@ import type { IncomingMessage, ServerResponse } from 'http';
           return id;
         },
 
-        // Nível customizado de log
-        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+        // Nível customizado de log (silent em testes e2e)
+        level:
+          process.env.NODE_ENV === 'test'
+            ? 'silent'
+            : process.env.NODE_ENV !== 'production'
+              ? 'debug'
+              : 'info',
 
-        // Transport para formatação bonita em desenvolvimento
+        // Transport para formatação bonita em desenvolvimento (desabilitado em testes)
         transport:
-          process.env.NODE_ENV !== 'production'
+          process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test'
             ? {
                 target: 'pino-pretty',
                 options: {

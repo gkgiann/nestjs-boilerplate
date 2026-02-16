@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RegisterUseCase } from '@modules/auth/application/use-cases';
 import { AuthService } from '@modules/auth/auth.service';
 import { UserAlreadyExistsError } from '@modules/auth/domain/errors';
-import { UserRole } from '../../../generated/prisma/enums';
+import { UserRole } from '@prisma/client';
 
 describe('RegisterUseCase', () => {
   let useCase: RegisterUseCase;

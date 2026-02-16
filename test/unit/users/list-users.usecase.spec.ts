@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ListUsersUseCase } from '@modules/users/application/use-cases';
-import { UserRole } from '../../../generated/prisma/enums';
+import { UserRole } from '@prisma/client';
 import { UserSortBy } from '@modules/users/dto';
 import { SortOrder } from '@common/pagination';
 

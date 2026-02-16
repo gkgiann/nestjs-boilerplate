@@ -27,6 +27,8 @@
       "@modules/*": ["src/modules/*"],
       "@shared/*": ["src/shared/*"],
       "@common/*": ["src/common/*"],
+      "@test/*": ["test/*"]
+
     }
   }
 }

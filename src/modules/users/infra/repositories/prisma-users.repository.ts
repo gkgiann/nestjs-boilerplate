@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database';
-import { UserRole } from '../../../../../generated/prisma/enums';
+import { UserRole } from '@prisma/client';
 import { UserEntity } from '@modules/users/domain/entities/user.entity';
 import { PaginatedResponse, paginateWithSearch, SortOrder } from '@common/pagination';
 import {

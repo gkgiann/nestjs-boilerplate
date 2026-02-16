@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException } from '@nestjs/common';
 import { CreateUserUseCase } from '@modules/users/application/use-cases';
-import { UserRole } from '../../../generated/prisma/enums';
+import { UserRole } from '@prisma/client';
 
 describe('CreateUserUseCase', () => {
   let useCase: CreateUserUseCase;

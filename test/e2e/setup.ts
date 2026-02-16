@@ -7,7 +7,9 @@ export async function createTestApp(): Promise<INestApplication> {
     imports: [AppModule],
   }).compile();
 
-  const app = moduleRef.createNestApplication();
+  const app = moduleRef.createNestApplication({
+    logger: false,
+  });
   await app.init();
 
   return app;

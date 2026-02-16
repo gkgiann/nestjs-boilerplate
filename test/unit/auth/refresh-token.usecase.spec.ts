@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RefreshTokenUseCase } from '@modules/auth/application/use-cases';
 import { AuthService } from '@modules/auth/auth.service';
 import { RefreshTokenInvalidError } from '@modules/auth/domain/errors';
-import { UserRole } from '../../../generated/prisma/enums';
+import { UserRole } from '@prisma/client';
 
 describe('RefreshTokenUseCase', () => {
   let useCase: RefreshTokenUseCase;

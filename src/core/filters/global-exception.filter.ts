@@ -2,7 +2,10 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from
 import { Request, Response } from 'express';
 import { Logger } from 'nestjs-pino';
 import { ThrottlerException } from '@nestjs/throttler';
-import { Prisma } from '../../../generated/prisma/client';
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from '@prisma/client/runtime/client';
 
 interface ErrorResponse {
   success: false;
@@ -73,7 +76,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           ip: request.ip,
         });
       }
-    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+    } else if (exception instanceof PrismaClientKnownRequestError) {
       // Tratar erros conhecidos do Prisma
       const prismaError = exception;
 
@@ -135,7 +138,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         url: request.url,
         ip: request.ip,
       });
-    } else if (exception instanceof Prisma.PrismaClientValidationError) {
+    } else if (exception instanceof PrismaClientValidationError) {
       // Tratar erros de validação do Prisma
       status = HttpStatus.BAD_REQUEST;
       errorCode = 'VALIDATION_ERROR';
