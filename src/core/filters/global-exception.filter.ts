@@ -1,6 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Logger } from 'nestjs-pino';
+import { ThrottlerException } from '@nestjs/throttler';
 import { Prisma } from '../../../generated/prisma/client';
 
 interface ErrorResponse {
@@ -27,7 +28,25 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let message = 'An unexpected error occurred';
     let details: unknown;
 
-    if (exception instanceof HttpException) {
+    if (exception instanceof ThrottlerException) {
+      // Tratar violações de rate limiting
+      status = HttpStatus.TOO_MANY_REQUESTS;
+      errorCode = 'RATE_LIMIT_EXCEEDED';
+      message = 'Too many requests, please try again later';
+
+      this.logger.warn({
+        msg: 'Rate limit exceeded',
+        error: {
+          code: errorCode,
+          message,
+          statusCode: status,
+        },
+        method: request.method,
+        url: request.url,
+        ip: request.ip,
+        userAgent: request.headers['user-agent'],
+      });
+    } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 

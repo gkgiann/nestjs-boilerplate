@@ -70,6 +70,17 @@ export const throttleConfig = registerAs(
 );
 
 /**
+ * Auth throttle configuration (stricter limits for authentication endpoints)
+ */
+export const authThrottleConfig = registerAs(
+  'authThrottle',
+  (): AuthThrottleConfig => ({
+    ttl: parseInt(process.env.AUTH_THROTTLE_TTL || '60', 10),
+    limit: parseInt(process.env.AUTH_THROTTLE_LIMIT || '5', 10),
+  }),
+);
+
+/**
  * Payment provider configuration
  */
 export const paymentConfig = registerAs(
@@ -113,6 +124,11 @@ export interface ThrottleConfig {
   limit: number;
 }
 
+export interface AuthThrottleConfig {
+  ttl: number;
+  limit: number;
+}
+
 export interface PaymentConfig {
   apiKey?: string;
   webhookSecret?: string;
@@ -128,5 +144,6 @@ export const configurations = [
   securityConfig,
   loggingConfig,
   throttleConfig,
+  authThrottleConfig,
   paymentConfig,
 ];

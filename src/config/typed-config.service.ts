@@ -7,6 +7,7 @@ import {
   SecurityConfig,
   LoggingConfig,
   ThrottleConfig,
+  AuthThrottleConfig,
   PaymentConfig,
 } from './configuration';
 
@@ -48,6 +49,10 @@ export class TypedConfigService {
 
   get throttle(): ThrottleConfig {
     return this.configService.get<ThrottleConfig>('throttle') as ThrottleConfig;
+  }
+
+  get authThrottle(): AuthThrottleConfig {
+    return this.configService.get<AuthThrottleConfig>('authThrottle') as AuthThrottleConfig;
   }
 
   get payment(): PaymentConfig {
