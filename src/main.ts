@@ -46,10 +46,21 @@ async function bootstrap() {
 
   // Swagger Configuration
   const config = new DocumentBuilder()
-    .setTitle('EventGO API')
-    .setDescription('Sistema de gerenciamento de eventos')
+    .setTitle('NestJS Boilerplate API')
+    .setDescription(
+      'API de exemplo para NestJS com boas práticas de configuração, segurança e documentação.',
+    )
     .setVersion('v1')
-    .addBearerAuth()
+    .addTag('Autenticação', 'Endpoints de autenticação e gerenciamento de usuários')
+    .addTag('Health', 'Endpoints de saúde da aplicação')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      description: 'Insira o token JWT obtido no login',
+      name: 'Authorization',
+      in: 'header',
+    })
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

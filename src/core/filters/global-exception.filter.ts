@@ -56,7 +56,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       // Handle Prisma known errors
-      const prismaError = exception as Prisma.PrismaClientKnownRequestError;
+      const prismaError = exception;
 
       switch (prismaError.code) {
         case 'P2002':

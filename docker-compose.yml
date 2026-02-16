@@ -7,14 +7,29 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: eventgo_db
+      POSTGRES_DB: boilerplate_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d eventgo_db"]
+      test: ["CMD-SHELL", "pg_isready -U user -d boilerplate_db"]
       interval: 5s
       timeout: 2s
       retries: 20
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_boilerplate
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin_boilerplate
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
+  pgadmin_data:

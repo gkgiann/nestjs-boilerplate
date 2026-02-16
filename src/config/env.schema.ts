@@ -12,6 +12,8 @@ export const envSchema = z.object({
     .default('3000')
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().positive()),
+  APP_NAME: z.string().default('nestjs-boilerplate'),
+  APP_VERSION: z.string().default('1.0.0'),
 
   // CORS
   CORS_ORIGINS: z.string().default('*'),
@@ -28,18 +30,40 @@ export const envSchema = z.object({
     ),
 
   // JWT (required)
-  JWT_SECRET: z
+  JWT_ACCESS_SECRET: z
     .string({
-      message: 'JWT_SECRET is required',
+      message: 'JWT_ACCESS_SECRET is required',
     })
-    .min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_EXPIRATION: z.string().default('15m'),
+    .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),
+  JWT_ACCESS_EXPIRATION: z.string().default('15m'),
   JWT_REFRESH_SECRET: z
     .string({
       message: 'JWT_REFRESH_SECRET is required',
     })
     .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
   JWT_REFRESH_EXPIRATION: z.string().default('7d'),
+
+  // Password Security
+  BCRYPT_SALT_ROUNDS: z
+    .string()
+    .default('10')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(8).max(15)),
+
+  // Logging
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+
+  // Rate Limiting
+  THROTTLE_TTL: z
+    .string()
+    .default('60')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().positive()),
+  THROTTLE_LIMIT: z
+    .string()
+    .default('100')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().positive()),
 
   // Payment Provider (optional)
   PAYMENT_PROVIDER_API_KEY: z.string().optional(),

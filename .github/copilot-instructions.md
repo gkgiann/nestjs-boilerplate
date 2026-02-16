@@ -1,138 +1,360 @@
-# EventGO API - AI Agent Instructions
+# NestJS Enterprise Boilerplate - AI Agent Instructions
 
-## Architecture Overview
+## 🎯 Purpose
 
-**EventGO** is an enterprise-grade event management SaaS backend implementing Clean Architecture + Domain-Driven Design (DDD) with NestJS.
+This repository is a reusable **NestJS enterprise-grade boilerplate**
+designed to serve as the foundation for any backend API.
 
-**⚠️ Critical:** Always consult [`docs/ARCHITECTURE_CONTEXT.md`](../docs/ARCHITECTURE_CONTEXT.md) for comprehensive architectural rules and rationale.
+It implements:
 
-## Mandatory Module Structure
+-   Clean Architecture
+-   Domain-Driven Design (DDD) simplified
+-   Layered modular structure
+-   JWT Authentication with refresh token rotation
+-   Structured logging (Pino)
+-   Global error handling
+-   Standardized HTTP responses
+-   Prisma ORM
+-   Dockerized environment
+-   Environment validation with Zod
+-   Swagger documentation
+-   Transaction safety patterns
 
-Every feature module MUST follow this layered structure:
+This project is domain-agnostic. It must remain generic and reusable.
 
-```
-modules/<feature>/
-├── application/use-cases/     # Business logic orchestration
-├── domain/
-│   ├── entities/              # Domain models
-│   └── rules/                 # Business rules
-├── infra/repositories/        # Prisma data access
-├── dto/                       # Request/response validation
-├── <feature>.controller.ts    # HTTP orchestration only
-└── <feature>.module.ts
-```
+------------------------------------------------------------------------
 
-**Example:** For a "registrations" feature, create `modules/registrations/application/use-cases/create-registration.use-case.ts`, not a service file.
+# 🏗️ Architectural Principles
 
-## Layer Responsibilities (Strict)
+1.  Explicit over implicit
+2.  Strict separation of concerns
+3.  No business logic in controllers
+4.  No HTTP logic in domain
+5.  No direct Prisma usage in controllers
+6.  Use cases orchestrate business rules
+7.  Repositories encapsulate data access
+8.  All input must be validated
+9.  All errors must be standardized
+10. Code must be production-ready
 
-- **Controllers**: Only route requests to use cases. Zero business logic. Always use validated DTOs.
-- **Use Cases**: Contain ALL business logic, enforce domain rules, coordinate repositories, throw domain exceptions.
-- **Repositories**: Encapsulate Prisma queries. No business logic, no HTTP awareness.
-- **Domain**: Pure business rules and entities. Framework-agnostic.
+------------------------------------------------------------------------
 
-## Global Standards
+# 📁 Mandatory Module Structure
 
-### API Response Format
+Every feature module MUST follow:
 
-All endpoints return:
-```typescript
-// Success
-{ "success": true, "data": {...}, "timestamp": "ISO_8601" }
+modules/`<feature>`{=html}/ ├── application/ │ └── use-cases/ ├──
+domain/ │ ├── entities/ │ └── rules/ ├── infra/ │ └── repositories/ ├──
+dto/ ├── `<feature>`{=html}.controller.ts └──
+`<feature>`{=html}.module.ts
 
-// Error
-{ "success": false, "error": { "code": "ERROR_CODE", "message": "..." }, "timestamp": "ISO_8601" }
-```
+Never create generic `service.ts` files for business logic.
 
-Implement via global response interceptor. Never return raw Prisma errors or expose stack traces.
+------------------------------------------------------------------------
 
-### HTTP Error Mapping
-- `400` - Validation error
-- `401` - Unauthorized
-- `403` - Forbidden  
-- `404` - Not Found
-- `409` - Conflict (duplicate resource)
-- `422` - Business rule violation
-- `500` - Internal error
+# 🧱 Layer Responsibilities
 
-Use a `GlobalExceptionFilter` to enforce these mappings.
+## Controllers
 
-### Global Prefix
-All routes: `/api/v1/*`  
-Swagger docs: `/api/docs`
+-   Orchestrate HTTP only
+-   Validate DTOs
+-   Call use cases
+-   No business logic
 
-Configure in `main.ts` via `app.setGlobalPrefix()`.
+## Use Cases
 
-## Critical Patterns
+-   Contain all business logic
+-   Coordinate repositories
+-   Enforce domain rules
+-   Throw domain exceptions
 
-### Transaction Safety
-Use `prisma.$transaction()` for:
-- Registration creation + batch updates
-- Payment confirmation + registration state change
-- Any multi-step data modification
+## Repositories
 
-```typescript
-await this.prisma.$transaction([
-  this.prisma.registration.create(...),
-  this.prisma.batch.update({ where: ..., data: { soldQuantity: { increment: 1 } } })
-]);
-```
+-   Encapsulate Prisma queries
+-   No business logic
+-   No HTTP awareness
 
-### Environment Configuration
-- Never use `process.env` directly
-- Validate all vars with Zod schema in `config/env.schema.ts`
-- Use `@nestjs/config` ConfigService
-- App should crash on startup if required vars missing
+## Domain
 
-### Logging
-- Forbidden: `console.log()`
-- Required: Structured logger (Pino) via `core/logger/`
-- Log: registration creation, payments, webhooks, business rule violations, exceptions
+-   Pure business rules
+-   Framework-agnostic
+-   No NestJS imports
 
-### Authentication & Authorization
-- JWT access + refresh tokens
-- RBAC with custom `@Roles()` decorator
-- Guards in `core/guards/`
-- Never trust client-sent role claims
+------------------------------------------------------------------------
 
-### Payment Idempotency
-- `providerPaymentId` must be unique constraint
-- Webhook handlers must safely handle duplicates
-- Use transactions for payment → registration confirmation flow
-- Validate payment state transitions
+# 🌐 Global API Standards
 
-## Development Commands
+## Global Prefix
 
-```bash
-npm run start:dev          # Watch mode
-npm run build              # Production build
-npm run test               # Unit tests
-npm run test:e2e           # E2E tests
-npm run lint               # ESLint with auto-fix
-```
+/api/v1
 
-## Key Files to Reference
+## Swagger
 
-- [`docs/ARCHITECTURE_CONTEXT.md`](../docs/ARCHITECTURE_CONTEXT.md) - Complete architectural contract
-- `src/main.ts` - Bootstrap configuration (global prefix, Swagger, validation pipe)
-- `src/config/` - Environment setup
+/api/docs
 
-## Code Generation Rules
+Configured in main.ts.
 
-1. **Always start with use case**, not a generic service
-2. Follow exact directory structure from architecture doc
-3. Implement domain validation in `domain/rules/`, not in controllers
-4. Create custom exceptions in `core/exceptions/` that map to HTTP status codes
-5. Validate DTOs with `class-validator` decorators
-6. Use dependency injection, never instantiate repositories directly
+------------------------------------------------------------------------
 
-## Quality Gates
+# 📡 Standard HTTP Response Format
 
-Before marking implementation complete:
-- [ ] Follows layered module structure
-- [ ] Uses standardized response format
-- [ ] Includes transaction for multi-step operations
-- [ ] Logs critical operations with structured logger
-- [ ] Validates input with DTOs
-- [ ] Throws domain exceptions (not HTTP exceptions in use cases)
-- [ ] Includes unit tests for domain rules
+## Success
+
+{ "success": true, "data": {}, "timestamp": "ISO_8601" }
+
+## Error
+
+{ "success": false, "error": { "code": "ERROR_CODE", "message":
+"Readable message" }, "timestamp": "ISO_8601" }
+
+Implemented via global interceptor + global exception filter.
+
+Never expose stack traces or raw Prisma errors.
+
+------------------------------------------------------------------------
+
+# 🚨 HTTP Status Mapping
+
+  Status   Meaning
+  -------- -------------------------
+  400      Validation error
+  401      Unauthorized
+  403      Forbidden
+  404      Not found
+  409      Conflict
+  422      Business rule violation
+  500      Internal error
+
+------------------------------------------------------------------------
+
+# 🔐 Authentication Architecture
+
+This boilerplate includes:
+
+-   JWT Access Token (short-lived)
+-   JWT Refresh Token (long-lived)
+-   Refresh token rotation
+-   Multiple device support
+-   Role-based access control (RBAC)
+-   Guards
+-   Custom decorators (@CurrentUser, @Roles)
+
+### Critical Rules
+
+-   Never trust client-sent roles
+-   Refresh tokens must be hashed before saving
+-   Refresh tokens must support revocation
+-   Access tokens are stateless
+-   Refresh tokens are stateful
+
+------------------------------------------------------------------------
+
+# 🔄 Transaction Safety
+
+Use prisma.\$transaction() for any multi-step write operation.
+
+Never perform related updates without a transaction.
+
+------------------------------------------------------------------------
+
+# ⚙️ Environment Configuration
+
+-   Never use process.env directly
+-   Use @nestjs/config
+-   Validate with Zod
+-   Application must fail at startup if required variables are missing
+
+------------------------------------------------------------------------
+
+# 📊 Logging Rules
+
+-   Do NOT use console.log
+-   Use structured logger (Pino)
+-   Log:
+    -   Application startup
+    -   Errors
+    -   Critical operations
+    -   Authentication events
+
+Logs must include contextual identifiers when available.
+
+------------------------------------------------------------------------
+
+# 🧪 Testing Standards
+
+Every feature should include:
+
+-   Unit tests for use cases
+-   Integration tests when relevant
+-   Explicit test naming
+
+------------------------------------------------------------------------
+
+# 🧩 Boilerplate Expectations
+
+This repository must always include:
+
+-   Auth module fully implemented
+-   Example feature module (sample CRUD)
+-   Pagination helper pattern
+-   Base DTO validation pattern
+-   Global exception handling
+-   Docker configuration
+-   Prisma setup
+-   Logger configuration
+-   Swagger setup
+
+This project must be reusable as a base for any API.
+
+------------------------------------------------------------------------
+
+# 🚫 Forbidden Practices
+
+-   Business logic inside controllers
+-   Direct Prisma usage in controllers
+-   Using any
+-   Skipping validation
+-   Returning raw database errors
+-   Silent catch blocks
+-   Mixing domain and HTTP concerns
+
+------------------------------------------------------------------------
+
+# 🛠 Code Generation Rules
+
+When generating code:
+
+1.  Always start with a Use Case.
+2.  Follow the exact layered structure.
+3.  Create DTOs with validation decorators.
+4.  Throw domain-specific errors.
+5.  Use dependency injection.
+6.  Keep controllers thin.
+7.  Keep business rules explicit.
+8.  Keep modules self-contained.
+9.  Ensure strong typing.
+10. Follow single responsibility principle.
+
+------------------------------------------------------------------------
+
+# 🎯 Goal of This Boilerplate
+
+To provide a production-ready, enterprise-grade foundation that can be
+extended into any backend system without architectural refactoring.
+
+All future development must respect this contract.
+
+
+
+
+# Boilerplate Architecture Additions
+
+## 🎯 Purpose
+
+This document complements the core boilerplate instructions and defines:
+
+-   Standard module blueprint
+-   Official Users module as reference CRUD
+-   Global pagination pattern
+-   Reusable structure for future modules
+
+This ensures the boilerplate is scalable and production-ready.
+
+------------------------------------------------------------------------
+
+# 🧱 Official Module Blueprint
+
+Every new module MUST follow this structure:
+
+modules/`<feature>`{=html}/ ├── application/ │ └── use-cases/ ├──
+domain/ │ ├── entities/ │ └── rules/ ├── infra/ │ └── repositories/ ├──
+dto/ ├── `<feature>`{=html}.controller.ts └──
+`<feature>`{=html}.module.ts
+
+### Rules
+
+-   No business logic in controllers
+-   No Prisma usage outside repositories
+-   Use cases orchestrate logic
+-   Domain must be framework-agnostic
+-   Modules must be self-contained
+
+------------------------------------------------------------------------
+
+# 👤 Users Module (Reference CRUD)
+
+The Users module serves as the official example implementation for
+future modules.
+
+## Responsibilities
+
+-   CreateUser
+-   UpdateUser
+-   DeleteUser
+-   GetUserById
+-   ListUsers (paginated)
+
+## Separation of Concerns
+
+-   AuthModule handles authentication
+-   UsersModule handles user management
+-   Role-based access control enforced via guards
+
+------------------------------------------------------------------------
+
+# 📄 Standard Pagination Pattern
+
+Pagination is mandatory for all list endpoints.
+
+## Pagination Query DTO
+
+-   page (default: 1)
+-   limit (default: 10)
+-   limit max: 100
+
+## Response Format
+
+{ "success": true, "data": { "items": \[\], "meta": { "page": 1,
+"limit": 10, "total": 120, "totalPages": 12 } }, "timestamp": "ISO_8601"
+}
+
+### Rules
+
+-   Never return raw arrays
+-   Always include meta object
+-   Always calculate totalPages
+-   Enforce maximum limit
+
+------------------------------------------------------------------------
+
+# 🧩 Common Directory Structure
+
+src/ ├── common/ │ ├── filters/ │ ├── interceptors/ │ ├── decorators/ │
+├── guards/ │ ├── pagination/ │ └── exceptions/ │ ├── config/ │ ├──
+env.schema.ts │ └── configuration.ts │ ├── modules/ │ ├── auth/ │ ├──
+users/ │ └── example/ (optional) │ ├── prisma/ │ └── prisma.service.ts │
+├── app.module.ts └── main.ts
+
+------------------------------------------------------------------------
+
+# 🏗 Architectural Intent
+
+This boilerplate must:
+
+-   Be domain-agnostic
+-   Be reusable across projects
+-   Enforce structural discipline
+-   Encourage clean architecture
+-   Provide production-level patterns
+
+------------------------------------------------------------------------
+
+# 🚀 Implementation Priority
+
+1.  Complete Auth module
+2.  Implement Users CRUD as reference
+3.  Implement global pagination utilities
+4.  Finalize documentation
+5.  Tag version v1.0
+
+This establishes a solid, reusable backend foundation.

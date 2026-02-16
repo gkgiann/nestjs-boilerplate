@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AppConfig, DatabaseConfig, JwtConfig, PaymentConfig } from './configuration';
+import {
+  AppConfig,
+  DatabaseConfig,
+  JwtConfig,
+  SecurityConfig,
+  LoggingConfig,
+  ThrottleConfig,
+  PaymentConfig,
+} from './configuration';
 
 /**
  * Type-safe configuration service
@@ -28,6 +36,18 @@ export class TypedConfigService {
 
   get jwt(): JwtConfig {
     return this.configService.get<JwtConfig>('jwt') as JwtConfig;
+  }
+
+  get security(): SecurityConfig {
+    return this.configService.get<SecurityConfig>('security') as SecurityConfig;
+  }
+
+  get logging(): LoggingConfig {
+    return this.configService.get<LoggingConfig>('logging') as LoggingConfig;
+  }
+
+  get throttle(): ThrottleConfig {
+    return this.configService.get<ThrottleConfig>('throttle') as ThrottleConfig;
   }
 
   get payment(): PaymentConfig {

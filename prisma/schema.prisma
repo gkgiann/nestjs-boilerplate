@@ -8,286 +8,78 @@ datasource db {
   provider = "postgresql"
 }
 
-//////////////////////////////////////////////////////
+//
 // ENUMS
-//////////////////////////////////////////////////////
+//
 
-enum EventRole {
+enum UserRole {
   ADMIN
-  ORGANIZER
-  PARTICIPANT
+  USER
 }
 
-enum RegistrationStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  REFUNDED
-  EXPIRED
-  FREE
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  TOKEN_REFRESH
+  CREATE
+  UPDATE
+  DELETE
+  ERROR
 }
 
-enum PaymentProvider {
-  MERCADO_PAGO
-}
-
-enum PaymentStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CANCELLED
-  REFUNDED
-}
-
-enum PaymentMethod {
-  CREDIT_CARD
-  DEBIT_CARD
-  PIX
-  BOLETO
-  FREE
-}
-
-enum ActivityType {
-  WORKSHOP
-  MINICOURSE
-  LECTURE
-  CUSTOM
-}
-
-enum ActivityShift {
-  MORNING
-  AFTERNOON
-  EVENING
-}
-
-//////////////////////////////////////////////////////
-// USER
-//////////////////////////////////////////////////////
+//
+// MODELS
+//
 
 model User {
-  id       String  @id @default(uuid())
+  id       String   @id @default(uuid())
   name     String
-  email    String  @unique
+  email    String   @unique
   password String
-  isActive Boolean @default(true)
+  role     UserRole @default(USER)
+  isActive Boolean  @default(true)
+
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  eventRoles         EventParticipant[]
-  registrations      EventRegistration[]
-  activityAttendance ActivityAttendance[]
-  eventAttendance    EventAttendance[]
-  events             Event[]
 }
 
-//////////////////////////////////////////////////////
-// EVENT
-//////////////////////////////////////////////////////
-
-model Event {
-  id          String  @id @default(uuid())
-  name        String
-  description String
-  location    String
-  bannerUrl   String?
-
-  startDate DateTime
-  endDate   DateTime
-
-  isActive Boolean @default(true)
-  isPublic Boolean @default(true)
-
-  ownerId String
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  participants  EventParticipant[]
-  batches       Batch[]
-  registrations EventRegistration[]
-  activities    Activity[]
-  attendances   EventAttendance[]
-
-  @@index([ownerId])
-}
-
-//////////////////////////////////////////////////////
-// ROLE POR EVENTO
-//////////////////////////////////////////////////////
-
-model EventParticipant {
-  id String @id @default(uuid())
-
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
+model RefreshToken {
+  id     String @id @default(uuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  role EventRole @default(PARTICIPANT)
+  tokenHash String
+  device    String?
+  ipAddress String?
+  userAgent String?
+
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([eventId, userId])
   @@index([userId])
 }
 
-//////////////////////////////////////////////////////
-// LOTES
-//////////////////////////////////////////////////////
+model AuditLog {
+  id     String  @id @default(uuid())
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-model Batch {
-  id String @id @default(uuid())
+  action   AuditAction
+  entity   String?
+  entityId String?
+  metadata Json?
 
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  name         String
-  price        Int // valor em centavos
-  maxQuantity  Int
-  soldQuantity Int    @default(0)
-
-  startDate DateTime
-  endDate   DateTime
-  isActive  Boolean  @default(true)
+  ipAddress String?
+  userAgent String?
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  registrations EventRegistration[]
-
-  @@index([eventId])
-}
-
-//////////////////////////////////////////////////////
-// INSCRIÇÃO
-//////////////////////////////////////////////////////
-
-model EventRegistration {
-  id               String @id @default(uuid())
-  registrationCode String @unique
-
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  batchId String
-  batch   Batch  @relation(fields: [batchId], references: [id])
-
-  status RegistrationStatus @default(PENDING)
-  amount Int // valor congelado no momento da compra
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  payments Payment[]
-
-  @@unique([eventId, userId]) // impede inscrição duplicada no evento
-  @@index([batchId])
-}
-
-//////////////////////////////////////////////////////
-// PAGAMENTO
-//////////////////////////////////////////////////////
-
-model Payment {
-  id String @id @default(uuid())
-
-  registrationId String
-  registration   EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-
-  provider          PaymentProvider
-  providerPaymentId String?
-  status            PaymentStatus   @default(PENDING)
-  method            PaymentMethod
-
-  amount Int
-
-  last4Digits     String?
-  providerRawData Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([registrationId])
-  @@index([providerPaymentId])
-}
-
-//////////////////////////////////////////////////////
-// ATIVIDADES
-//////////////////////////////////////////////////////
-
-model Activity {
-  id String @id @default(uuid())
-
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  name        String
-  description String
-  type        ActivityType
-  shift       ActivityShift
-
-  location String
-  dateTime DateTime
-
-  maxParticipants Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  attendances ActivityAttendance[]
-
-  @@index([eventId])
-}
-
-//////////////////////////////////////////////////////
-// PRESENÇA NO EVENTO
-//////////////////////////////////////////////////////
-
-model EventAttendance {
-  id String @id @default(uuid())
-
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  checkIn  DateTime?
-  checkOut DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([eventId, userId])
   @@index([userId])
-}
-
-//////////////////////////////////////////////////////
-// PRESENÇA EM ATIVIDADE
-//////////////////////////////////////////////////////
-
-model ActivityAttendance {
-  id String @id @default(uuid())
-
-  activityId String
-  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  checkIn  DateTime?
-  checkOut DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([activityId, userId])
-  @@index([userId])
+  @@index([action])
 }
