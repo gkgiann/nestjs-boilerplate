@@ -1,1 +1,1 @@
-export * from './refresh-token.repository';
+export * from './prisma-refresh-token.repository';

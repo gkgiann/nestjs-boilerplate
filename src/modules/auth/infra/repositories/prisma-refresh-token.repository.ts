@@ -1,30 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database';
-
-export interface CreateRefreshTokenData {
-  userId: string;
-  tokenHash: string;
-  expiresAt: Date;
-  device?: string;
-  ipAddress?: string;
-  userAgent?: string;
-}
-
-export interface RefreshTokenEntity {
-  id: string;
-  userId: string;
-  tokenHash: string;
-  device: string | null;
-  ipAddress: string | null;
-  userAgent: string | null;
-  isRevoked: boolean;
-  expiresAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import {
+  CreateRefreshTokenData,
+  IRefreshTokenRepository,
+  RefreshTokenEntity,
+} from '@modules/auth/domain/repositories';
 
 @Injectable()
-export class RefreshTokenRepository {
+export class PrismaRefreshTokenRepository implements IRefreshTokenRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**

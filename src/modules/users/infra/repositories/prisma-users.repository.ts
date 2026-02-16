@@ -8,7 +8,7 @@ import {
   IUsersRepository,
   PaginationParams,
   UpdateUserData,
-} from '@modules/users/domain/repositories/users.repository.interface';
+} from '@modules/users/domain/repositories';
 
 /**
  * Repositório de Usuários

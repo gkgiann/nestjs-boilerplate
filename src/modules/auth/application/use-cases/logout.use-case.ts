@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { RefreshTokenRepository } from '@modules/auth/infra/repositories';
+import { type IRefreshTokenRepository } from '@modules/auth/domain/repositories';
+import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class LogoutUseCase {
-  constructor(private readonly refreshTokenRepository: RefreshTokenRepository) {}
+  constructor(
+    @Inject('RefreshTokenRepository')
+    private readonly refreshTokenRepository: IRefreshTokenRepository,
+  ) {}
 
   /**
    * Deslogar usuário de todos os dispositivos revogando todos os refresh tokens

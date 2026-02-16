@@ -18,13 +18,14 @@ import {
 } from './application/use-cases';
 
 // Repositórios
-import { RefreshTokenRepository } from './infra/repositories';
+import { PrismaRefreshTokenRepository } from './infra/repositories';
 
 // Guards
 import { JwtAuthGuard, RolesGuard } from './guards';
 
 // Estratégias
 import { JwtStrategy } from './strategies';
+import { UsersModule } from '@modules/users/users.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { JwtStrategy } from './strategies';
         },
       }),
     }),
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -55,7 +57,10 @@ import { JwtStrategy } from './strategies';
     LogoutUseCase,
 
     // Repositórios
-    RefreshTokenRepository,
+    {
+      provide: 'RefreshTokenRepository',
+      useClass: PrismaRefreshTokenRepository,
+    },
 
     // Guards
     JwtAuthGuard,

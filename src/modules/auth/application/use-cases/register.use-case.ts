@@ -4,7 +4,8 @@ import { type PasswordHasher } from '@common/security';
 import { RegisterDto } from '@modules/auth/dto';
 import { UserAlreadyExistsError } from '@modules/auth/domain/errors';
 import { AuthService } from '@modules/auth/auth.service';
-import { RefreshTokenRepository } from '@modules/auth/infra/repositories';
+import { type IRefreshTokenRepository } from '@modules/auth/domain/repositories';
+import { type IUsersRepository } from '@modules/users/domain/repositories';
 
 export interface RegisterResult {
   accessToken: string;
@@ -20,18 +21,18 @@ export interface RegisterResult {
 @Injectable()
 export class RegisterUseCase {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject('UsersRepository')
+    private readonly usersRepository: IUsersRepository,
     private readonly authService: AuthService,
-    private readonly refreshTokenRepository: RefreshTokenRepository,
+    @Inject('RefreshTokenRepository')
+    private readonly refreshTokenRepository: IRefreshTokenRepository,
     @Inject('PasswordHasher')
     private readonly passwordHasher: PasswordHasher,
   ) {}
 
   async execute(data: RegisterDto): Promise<RegisterResult> {
     // 1. Verificar se o usuário já existe
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: data.email },
-    });
+    const existingUser = await this.usersRepository.findByEmail(data.email);
 
     if (existingUser) {
       throw new UserAlreadyExistsError(data.email);
@@ -41,13 +42,11 @@ export class RegisterUseCase {
     const hashedPassword = await this.passwordHasher.hash(data.password);
 
     // 3. Criar usuário no banco de dados
-    const user = await this.prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        password: hashedPassword,
-        role: 'USER', // Role padrão
-      },
+    const user = await this.usersRepository.create({
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      role: 'USER', // Role padrão
     });
 
     // 4. Gerar tokens de acesso e refresh

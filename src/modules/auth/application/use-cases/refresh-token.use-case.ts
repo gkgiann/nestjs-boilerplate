@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database';
 import { RefreshTokenDto } from '@modules/auth/dto';
 import { RefreshTokenInvalidError } from '@modules/auth/domain/errors';
 import { AuthService } from '@modules/auth/auth.service';
-import { RefreshTokenRepository } from '@modules/auth/infra/repositories';
+import { type IRefreshTokenRepository } from '@modules/auth/domain/repositories';
+import { type IUsersRepository } from '@modules/users/domain/repositories';
 
 export interface RefreshTokenResult {
   accessToken: string;
@@ -13,9 +14,11 @@ export interface RefreshTokenResult {
 @Injectable()
 export class RefreshTokenUseCase {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject('UsersRepository')
+    private readonly usersRepository: IUsersRepository,
     private readonly authService: AuthService,
-    private readonly refreshTokenRepository: RefreshTokenRepository,
+    @Inject('RefreshTokenRepository')
+    private readonly refreshTokenRepository: IRefreshTokenRepository,
   ) {}
 
   async execute(data: RefreshTokenDto): Promise<RefreshTokenResult> {
@@ -43,9 +46,7 @@ export class RefreshTokenUseCase {
     }
 
     // 6. Obter usuário associado
-    const user = await this.prisma.user.findUnique({
-      where: { id: storedToken.userId },
-    });
+    const user = await this.usersRepository.findById(storedToken.userId);
 
     if (!user || !user.isActive) {
       throw new RefreshTokenInvalidError();
