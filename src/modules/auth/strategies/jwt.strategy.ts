@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PrismaService } from '@core/database';
 import { TypedConfigService } from '@config/typed-config.service';
+import { type IUsersRepository } from '@modules/users/domain/repositories';
 
 export interface JwtPayload {
   sub: string; // ID do usuário
@@ -20,7 +20,7 @@ export interface ValidatedUser {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject('UsersRepository') private readonly usersRepository: IUsersRepository,
     private readonly config: TypedConfigService,
   ) {
     super({
@@ -36,16 +36,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    */
   async validate(payload: JwtPayload): Promise<ValidatedUser> {
     // 1. Buscar usuário no banco de dados pelo ID do payload do token
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-      },
-    });
+    const user = await this.usersRepository.findById(payload.sub);
 
     // 2. Validar que o usuário existe
     if (!user) {
