@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { UsersRepository } from '@modules/users/infra/repositories';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
+import { type IUsersRepository } from '@modules/users/domain/repositories/users.repository.interface';
 
 /**
  * Caso de Uso: Buscar Usuário
@@ -8,7 +8,10 @@ import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
  */
 @Injectable()
 export class GetUserUseCase {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    @Inject('UsersRepository')
+    private readonly usersRepository: IUsersRepository,
+  ) {}
 
   async execute(id: string): Promise<SafeUserEntity> {
     // 1. Buscar usuário por ID

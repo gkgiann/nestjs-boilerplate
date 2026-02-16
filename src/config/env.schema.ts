@@ -51,7 +51,7 @@ export const envSchema = z.object({
     .pipe(z.number().min(8).max(15)),
 
   // Credenciais do Admin (para seed)
-  ADMIN_EMAIL: z.string().email().optional(),
+  ADMIN_EMAIL: z.email().optional(),
   ADMIN_PASSWORD: z.string().min(8).optional(),
 
   // Logging (registro de logs)

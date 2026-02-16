@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException, Inject } from '@nestjs/common';
 import { type PasswordHasher } from '@common/security';
-import { UsersRepository } from '@modules/users/infra/repositories';
 import { UpdateUserDto } from '@modules/users/dto';
 import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
+import { type IUsersRepository } from '@modules/users/domain/repositories/users.repository.interface';
 
 /**
  * Caso de Uso: Atualizar Usuário
@@ -11,7 +11,8 @@ import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
 @Injectable()
 export class UpdateUserUseCase {
   constructor(
-    private readonly usersRepository: UsersRepository,
+    @Inject('UsersRepository')
+    private readonly usersRepository: IUsersRepository,
     @Inject('PasswordHasher')
     private readonly passwordHasher: PasswordHasher,
   ) {}

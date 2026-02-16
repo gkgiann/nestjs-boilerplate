@@ -13,14 +13,17 @@ import {
 } from './application/use-cases';
 
 // Repositórios
-import { UsersRepository } from './infra/repositories';
+import { PrismaUsersRepository } from './infra/repositories';
 
 @Module({
   imports: [DatabaseModule, SecurityModule],
   controllers: [UsersController],
   providers: [
     // Repositório
-    UsersRepository,
+    {
+      provide: 'UsersRepository',
+      useClass: PrismaUsersRepository,
+    },
 
     // Casos de Uso
     CreateUserUseCase,
@@ -31,7 +34,7 @@ import { UsersRepository } from './infra/repositories';
   ],
   exports: [
     // Exportar repositório para uso em outros módulos
-    UsersRepository,
+    'UsersRepository',
   ],
 })
 export class UsersModule {}

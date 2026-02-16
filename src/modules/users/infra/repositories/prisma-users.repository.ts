@@ -3,36 +3,19 @@ import { PrismaService } from '@core/database';
 import { UserRole } from '../../../../../generated/prisma/enums';
 import { UserEntity } from '@modules/users/domain/entities/user.entity';
 import { PaginatedResponse, paginateWithSearch, SortOrder } from '@common/pagination';
-
-export interface CreateUserData {
-  name: string;
-  email: string;
-  password: string;
-  role?: UserRole;
-}
-
-export interface UpdateUserData {
-  name?: string;
-  email?: string;
-  password?: string;
-  role?: UserRole;
-  isActive?: boolean;
-}
-
-export interface PaginationParams {
-  page: number;
-  limit: number;
-  sortBy?: string;
-  order?: SortOrder;
-  search?: string;
-}
+import {
+  CreateUserData,
+  IUsersRepository,
+  PaginationParams,
+  UpdateUserData,
+} from '@modules/users/domain/repositories/users.repository.interface';
 
 /**
  * Repositório de Usuários
  * Encapsula todas as operações de banco de dados para a entidade User
  */
 @Injectable()
-export class UsersRepository {
+export class PrismaUsersRepository implements IUsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**

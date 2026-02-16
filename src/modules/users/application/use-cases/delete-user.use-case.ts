@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { UsersRepository } from '@modules/users/infra/repositories';
+import { type IUsersRepository } from '@modules/users/domain/repositories/users.repository.interface';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 /**
  * Caso de Uso: Deletar Usuário
@@ -7,7 +7,10 @@ import { UsersRepository } from '@modules/users/infra/repositories';
  */
 @Injectable()
 export class DeleteUserUseCase {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    @Inject('UsersRepository')
+    private readonly usersRepository: IUsersRepository,
+  ) {}
 
   async execute(id: string): Promise<void> {
     // 1. Verificar se o usuário existe
