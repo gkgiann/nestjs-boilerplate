@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UsersRepository, PaginatedResult } from '@modules/users/infra/repositories';
+import { UsersRepository } from '@modules/users/infra/repositories';
 import { ListUsersDto } from '@modules/users/dto';
 import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
+import { PaginatedResponse } from '@common/pagination';
 
 /**
  * List Users Use Case
@@ -11,11 +12,11 @@ import { SafeUserEntity } from '@modules/users/domain/entities/user.entity';
 export class ListUsersUseCase {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async execute(params: ListUsersDto): Promise<PaginatedResult<SafeUserEntity>> {
+  async execute(params: ListUsersDto): Promise<PaginatedResponse<SafeUserEntity>> {
     // 1. Get paginated users from repository
     const result = await this.usersRepository.paginate({
-      page: params.page || 1,
-      limit: params.limit || 10,
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
       sortBy: params.sortBy,
       order: params.order,
       search: params.search,

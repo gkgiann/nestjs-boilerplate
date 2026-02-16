@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database';
 import { UserRole } from '../../../../../generated/prisma/enums';
 import { UserEntity } from '@modules/users/domain/entities/user.entity';
+import { PaginatedResponse, paginateWithSearch, SortOrder } from '@common/pagination';
 
 export interface CreateUserData {
   name: string;
@@ -22,18 +23,8 @@ export interface PaginationParams {
   page: number;
   limit: number;
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: SortOrder;
   search?: string;
-}
-
-export interface PaginatedResult<T> {
-  items: T[];
-  meta: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
 }
 
 /**
@@ -148,53 +139,25 @@ export class UsersRepository {
   /**
    * List users with pagination and filtering
    */
-  async paginate(params: PaginationParams): Promise<PaginatedResult<UserEntity>> {
-    const { page, limit, sortBy = 'createdAt', order = 'desc', search } = params;
-
-    const skip = (page - 1) * limit;
-
-    // Build where clause for search
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' as const } },
-            { email: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {};
-
-    // Execute queries in parallel
-    const [items, total] = await Promise.all([
-      this.prisma.user.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: order },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          password: true,
-          role: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      }),
-      this.prisma.user.count({ where }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      items,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages,
-      },
+  async paginate(params: PaginationParams): Promise<PaginatedResponse<UserEntity>> {
+    const select = {
+      id: true,
+      name: true,
+      email: true,
+      password: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
     };
+
+    return paginateWithSearch<UserEntity>(
+      this.prisma.user,
+      params,
+      ['name', 'email'],
+      undefined,
+      select,
+    );
   }
 
   /**
