@@ -80,10 +80,6 @@ export const envSchema = z.object({
     .default('5')
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().positive()),
-
-  // Provedor de Pagamento (opcional)
-  PAYMENT_PROVIDER_API_KEY: z.string().optional(),
-  PAYMENT_PROVIDER_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export type EnvSchema = z.infer<typeof envSchema>;

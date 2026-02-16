@@ -80,17 +80,6 @@ export const authThrottleConfig = registerAs(
   }),
 );
 
-/**
- * Payment provider configuration
- */
-export const paymentConfig = registerAs(
-  'payment',
-  (): PaymentConfig => ({
-    apiKey: process.env.PAYMENT_PROVIDER_API_KEY,
-    webhookSecret: process.env.PAYMENT_PROVIDER_WEBHOOK_SECRET,
-  }),
-);
-
 // Definições de tipos
 export interface AppConfig {
   nodeEnv: 'development' | 'production' | 'test';
@@ -129,11 +118,6 @@ export interface AuthThrottleConfig {
   limit: number;
 }
 
-export interface PaymentConfig {
-  apiKey?: string;
-  webhookSecret?: string;
-}
-
 /**
  * All configuration modules
  */
@@ -145,5 +129,4 @@ export const configurations = [
   loggingConfig,
   throttleConfig,
   authThrottleConfig,
-  paymentConfig,
 ];
