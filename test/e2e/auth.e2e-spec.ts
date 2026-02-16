@@ -1,20 +1,29 @@
+import request from 'supertest';
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { AppModule } from 'src/app.module';
+import { createTestApp } from './setup';
+import { resetDatabase } from '../utils/reset-db';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    app = await createTestApp();
+  });
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+  beforeEach(async () => {
+    await resetDatabase();
   });
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it('should fail login with invalid credentials', async () => {
+    const response = await request(app.getHttpServer()).post('/auth/login').send({
+      email: 'wrong@test.com',
+      password: '123',
+    });
+
+    expect(response.status).toBe(401);
   });
 });
