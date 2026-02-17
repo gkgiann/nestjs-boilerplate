@@ -46,7 +46,7 @@ export class AuditInterceptor implements NestInterceptor {
             statusCode: response.statusCode,
             ip: request.ip || request.socket.remoteAddress || 'unknown',
             userAgent: request.headers['user-agent'],
-            requestId: request.id.toString(),
+            requestId: request.id as string,
             data: {
               body: this.sanitizeData(request.body),
               query: request.query,
@@ -68,7 +68,7 @@ export class AuditInterceptor implements NestInterceptor {
             statusCode: response.statusCode || 500,
             ip: request.ip || request.socket.remoteAddress || 'unknown',
             userAgent: request.headers['user-agent'],
-            requestId: request.id.toString(),
+            requestId: request.id as string,
             data: {
               body: this.sanitizeData(request.body),
               query: request.query,
