@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database';
 import { UserRole } from '@prisma/client';
 import { UserEntity } from '@modules/users/domain/entities/user.entity';
-import { PaginatedResponse, paginateWithSearch, SortOrder } from '@common/pagination';
+import { PaginatedResponse, paginateWithSearch } from '@common/pagination';
 import {
   CreateUserData,
   IUsersRepository,

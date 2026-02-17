@@ -1,5 +1,4 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { PrismaService } from '@core/database';
 import { type PasswordHasher } from '@common/security';
 import { RegisterDto } from '@modules/auth/dto';
 import { UserAlreadyExistsError } from '@modules/auth/domain/errors';

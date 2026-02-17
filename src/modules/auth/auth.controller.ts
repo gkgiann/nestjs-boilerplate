@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
 import { RegisterDto, LoginDto, RefreshTokenDto, AuthResponseDto, RefreshResponseDto } from './dto';
 import {
   RegisterUseCase,

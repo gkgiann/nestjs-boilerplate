@@ -1,5 +1,4 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { PrismaService } from '@core/database';
 import { type PasswordHasher } from '@common/security';
 import { LoginDto } from '@modules/auth/dto';
 import { InvalidCredentialsError } from '@modules/auth/domain/errors';

@@ -26,7 +26,7 @@ export class ListUsersUseCase {
 
     // 2. Remover senha de todos os usuários
     const safeItems = result.items.map((user) => {
-      const { password, ...safeUser } = user;
+      const { password: _password, ...safeUser } = user;
       return safeUser;
     });
 

@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PrismaService } from '@core/database';
 import { RefreshTokenDto } from '@modules/auth/dto';
 import { RefreshTokenInvalidError } from '@modules/auth/domain/errors';
 import { AuthService } from '@modules/auth/auth.service';

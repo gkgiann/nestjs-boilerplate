@@ -37,7 +37,7 @@ export class CreateUserUseCase {
     });
 
     // 4. Retornar usuário sem a senha
-    const { password, ...safeUser } = user;
+    const { password: _password, ...safeUser } = user;
     return safeUser;
   }
 }

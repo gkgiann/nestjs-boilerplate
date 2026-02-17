@@ -44,7 +44,7 @@ export class UpdateUserUseCase {
     const updatedUser = await this.usersRepository.update(id, updateData);
 
     // 5. Retornar usuário sem a senha
-    const { password, ...safeUser } = updatedUser;
+    const { password: _, ...safeUser } = updatedUser;
     return safeUser;
   }
 }
