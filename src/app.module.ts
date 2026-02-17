@@ -6,7 +6,8 @@ import { ConfigProvidersModule } from './config/config-providers.module';
 import { TypedConfigService } from './config/typed-config.service';
 import { DatabaseModule } from './core/database';
 import { LoggerModule } from './core/logger';
-import { HealthModule } from './modules/health/health.module';
+import { AuditModule } from './modules/audit';
+import { HealthModule } from './core/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -34,6 +35,7 @@ import { UsersModule } from './modules/users/users.module';
     }),
     DatabaseModule,
     LoggerModule,
+    AuditModule,
     HealthModule,
     AuthModule,
     UsersModule,

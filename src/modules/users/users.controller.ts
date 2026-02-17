@@ -13,6 +13,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { Auditable } from '@modules/audit';
 import { JwtAuthGuard, RolesGuard } from '@modules/auth/guards';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { CurrentUser } from '@modules/auth/decorators';
@@ -40,6 +41,7 @@ export class UsersController {
   ) {}
 
   @Post()
+  @Auditable('create', 'user')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Criar um novo usuário (somente ADMIN)' })
   @ApiResponse({
@@ -86,6 +88,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @Auditable('update', 'user')
   @ApiOperation({ summary: 'Atualizar usuário por ID (ADMIN ou proprietário)' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({
@@ -119,6 +122,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Auditable('delete', 'user')
   @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar usuário por ID (somente ADMIN)' })

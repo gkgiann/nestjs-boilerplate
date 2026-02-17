@@ -1,6 +1,7 @@
 import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
+import { Auditable } from '@modules/audit';
 import { RegisterDto, LoginDto, RefreshTokenDto, AuthResponseDto, RefreshResponseDto } from './dto';
 import {
   RegisterUseCase,
@@ -23,6 +24,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Auditable('register', 'auth')
   @ApiOperation({ summary: 'Registrar novo usuário' })
   @ApiResponse({
     status: 201,
@@ -36,6 +38,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Auditable('login', 'auth')
   @SkipThrottle({ default: true }) // Ignora limite global
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Fazer login' })
@@ -68,6 +71,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @Auditable('logout', 'auth')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
