@@ -16,16 +16,6 @@ enum UserRole {
   USER
 }
 
-enum AuditAction {
-  LOGIN
-  LOGOUT
-  TOKEN_REFRESH
-  CREATE
-  UPDATE
-  DELETE
-  ERROR
-}
-
 //
 // MODELS
 //
@@ -39,7 +29,6 @@ model User {
   isActive Boolean  @default(true)
 
   refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -62,23 +51,4 @@ model RefreshToken {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-}
-
-model AuditLog {
-  id     String  @id @default(uuid())
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  action   AuditAction
-  entity   String?
-  entityId String?
-  metadata Json?
-
-  ipAddress String?
-  userAgent String?
-
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([action])
 }
