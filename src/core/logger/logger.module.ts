@@ -1,0 +1,133 @@
+import { Global, Module } from '@nestjs/common';
+import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
+import { randomUUID } from 'crypto';
+import type { Request, Response } from 'express';
+import type { IncomingMessage, ServerResponse } from 'http';
+
+@Global()
+@Module({
+  imports: [
+    PinoLoggerModule.forRoot({
+      pinoHttp: {
+        // Geração de ID de requisição
+        genReqId: (req, res) => {
+          const existingId = req.id ?? req.headers['x-request-id'];
+          if (existingId) return existingId;
+          const id = randomUUID();
+          res.setHeader('X-Request-Id', id);
+          return id;
+        },
+
+        // Nível customizado de log (silent em testes e2e)
+        level:
+          process.env.NODE_ENV === 'test'
+            ? 'silent'
+            : process.env.NODE_ENV !== 'production'
+              ? 'debug'
+              : 'info',
+
+        // Transport para formatação bonita em desenvolvimento (desabilitado em testes)
+        transport:
+          process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  singleLine: false,
+                  translateTime: 'SYS:standard',
+                  ignore: 'pid,hostname',
+                  messageFormat: '{req.method} {req.url} - {msg}',
+                },
+              }
+            : undefined,
+
+        // Serializadores customizados
+        serializers: {
+          req(req: IncomingMessage & { id?: string }) {
+            const request = req as Request;
+            return {
+              id: request.id,
+              method: request.method,
+              url: request.url,
+              query: request.query,
+              params: request.params,
+              headers: {
+                host: request.headers.host,
+                'user-agent': request.headers['user-agent'],
+                'content-type': request.headers['content-type'],
+              },
+              remoteAddress: request.socket?.remoteAddress,
+              remotePort: request.socket?.remotePort,
+            };
+          },
+          res(res: ServerResponse) {
+            return {
+              statusCode: res.statusCode,
+              headers:
+                typeof res.getHeader === 'function'
+                  ? {
+                      'content-type': res.getHeader('content-type'),
+                      'content-length': res.getHeader('content-length'),
+                    }
+                  : undefined,
+            };
+          },
+          err(err: Error) {
+            return {
+              type: err.constructor.name,
+              ...err,
+            };
+          },
+        },
+
+        // Mensagem de log customizada
+        customLogLevel: function (req: IncomingMessage, res: ServerResponse, err?: Error) {
+          if (res.statusCode >= 400 && res.statusCode < 500) {
+            return 'warn';
+          } else if (res.statusCode >= 500 || err) {
+            return 'error';
+          } else if (res.statusCode >= 300 && res.statusCode < 400) {
+            return 'silent';
+          }
+          return 'info';
+        },
+
+        // Logging automático
+        autoLogging: {
+          ignore: (req: IncomingMessage) => {
+            // Ignorar endpoints de health check e métricas
+            return (
+              req.url === '/health' ||
+              req.url === '/api/v1/health' ||
+              req.url === '/metrics' ||
+              req.url === '/api/v1/metrics'
+            );
+          },
+        },
+
+        // Mensagem de sucesso customizada com tempo de resposta
+        customSuccessMessage: function (req: IncomingMessage, res: ServerResponse) {
+          if (res.statusCode === 404) {
+            return `Resource not found`;
+          }
+          return `${req.method} ${req.url} completed`;
+        },
+
+        // Mensagem de erro customizada
+        customErrorMessage: function (req: IncomingMessage, res: ServerResponse, err: Error) {
+          return `${req.method} ${req.url} failed with error: ${err.message}`;
+        },
+
+        // Chaves de atributos customizadas para melhor legibilidade no JSON
+        customAttributeKeys: {
+          req: 'request',
+          res: 'response',
+          err: 'error',
+          responseTime: 'duration',
+        },
+      },
+    }),
+  ],
+  exports: [PinoLoggerModule],
+})
+export class LoggerModule {}
