@@ -6,13 +6,14 @@
 - [2. Arquitetura](#2-arquitetura)
 - [3. Estrutura de Pastas](#3-estrutura-de-pastas)
 - [4. Stack Tecnológica](#4-stack-tecnológica)
-- [5. Configuração](#5-configuração)
-- [6. Módulos](#6-módulos)
-- [7. Padrões Arquiteturais](#7-padrões-arquiteturais)
-- [8. Segurança](#8-segurança)
-- [9. Testes](#9-testes)
-- [10. API Reference](#10-api-reference)
-- [11. Guia de Desenvolvimento](#11-guia-de-desenvolvimento)
+- [5. Ambiente Docker](#5-ambiente-docker)
+- [6. Configuração](#6-configuração)
+- [7. Módulos](#7-módulos)
+- [8. Padrões Arquiteturais](#8-padrões-arquiteturais)
+- [9. Segurança](#9-segurança)
+- [10. Testes](#10-testes)
+- [11. API Reference](#11-api-reference)
+- [12. Guia de Desenvolvimento](#12-guia-de-desenvolvimento)
 
 ---
 
@@ -33,7 +34,9 @@ Este boilerplate é uma implementação profissional de API REST usando NestJS 1
 - ✅ **Auditoria** de ações críticas
 - ✅ **Testes** unitários e E2E
 - ✅ **CI/CD** completo com GitHub Actions
-- ✅ **Docker** pronto para uso
+- ✅ **Docker** para desenvolvimento containerizado
+
+> 🐳 **Nota Importante:** Todo o desenvolvimento é feito via Docker! Não é necessário instalar Node.js localmente.
 
 ---
 
@@ -220,17 +223,245 @@ Módulos de negócio seguindo Clean Architecture. Cada módulo é independente e
 | **Supertest** | Testes de API HTTP |
 | **@nestjs/testing** | Utilitários de teste NestJS |
 
-### 4.6. CI/CD
+### 4.6. Container & DevOps
 
 | Tecnologia | Descrição |
-|-----------|-----------||
+|-----------|-----------|
+| **Docker** | Containerização da aplicação |
+| **Docker Compose** | Orquestração de containers |
 | **GitHub Actions** | Pipeline de CI/CD automatizado |
 
 ---
 
-## 5. Configuração
+## 5. Ambiente Docker
 
-### 5.1. Variáveis de Ambiente
+### 5.1. Visão Geral
+
+O projeto utiliza **Docker** para todo o ambiente de desenvolvimento, garantindo consistência entre diferentes máquinas e facilitando o onboarding de novos desenvolvedores.
+
+**Benefícios:**
+- ✅ Sem necessidade de instalar Node.js localmente
+- ✅ Ambiente consistente entre desenvolvedores
+- ✅ Isolação completa de dependências
+- ✅ Hot-reload automático
+- ✅ Fácil gerenciamento de múltiplos serviços
+
+### 5.2. Arquitetura dos Containers
+
+O ambiente é composto por 3 serviços:
+
+```yaml
+services:
+  postgres:       # Banco de dados PostgreSQL 16
+  pgadmin:        # Interface web para PostgreSQL
+  server:         # Aplicação NestJS
+```
+
+#### Serviço: `postgres`
+- **Imagem:** `postgres:16`
+- **Porta:** 5432
+- **Healthcheck:** Verifica se o banco está pronto antes de subir outros serviços
+- **Volume:** Persistência de dados em `postgres_data`
+
+#### Serviço: `pgadmin`
+- **Imagem:** `dpage/pgadmin4`
+- **Porta:** 5050
+- **Acesso:** admin@admin.com / admin123
+- **Dependência:** Aguarda `postgres` estar healthy
+
+#### Serviço: `server` (NestJS)
+- **Base:** `node:24.13.1-alpine`
+- **Porta:** 3000
+- **Volume:** `.:/usr/src/app` (hot-reload)
+- **Comando:** `npm run db:deploy && npm run start:dev`
+- **Dependência:** Aguarda `postgres` estar healthy
+
+### 5.3. Dockerfile
+
+```dockerfile
+FROM node:24.13.1-alpine
+
+WORKDIR /usr/src/app
+
+# Instala dependências
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copia código fonte
+COPY . .
+
+# Executa migrations e inicia em modo desenvolvimento
+CMD ["sh", "-c", "npm run db:deploy && npm run start:dev"]
+```
+
+**Características:**
+- Usa Alpine Linux (imagem leve)
+- Instala dependências com `npm ci` (deterministic)
+- Executa migrations automaticamente na inicialização
+- Inicia em modo desenvolvimento com hot-reload
+
+### 5.4. Comandos Docker Essenciais
+
+#### Iniciar Ambiente
+
+```bash
+# Subir todos os serviços em background
+docker-compose up -d
+
+# Ver logs em tempo real
+docker-compose logs -f server
+
+# Ver logs de todos os serviços
+docker-compose logs -f
+```
+
+#### Parar Ambiente
+
+```bash
+# Parar todos os serviços (mantém volumes)
+docker-compose down
+
+# Parar e remover volumes (limpa tudo)
+docker-compose down -v
+```
+
+#### Rebuild
+
+```bash
+# Rebuild após mudanças no Dockerfile ou package.json
+docker-compose up -d --build
+
+# Rebuild forçado (sem cache)
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+#### Executar Comandos no Container
+
+```bash
+# Executar comando no container `server`
+docker-compose exec server <comando>
+
+# Exemplos:
+docker-compose exec server npm run lint
+docker-compose exec server npm run test
+docker-compose exec server npx prisma studio
+docker-compose exec server npx prisma migrate dev --name my_migration
+
+# Acessar shell interativo
+docker-compose exec server sh
+```
+
+#### Gerenciar Banco de Dados
+
+```bash
+# Executar migrations
+docker-compose exec server npx prisma migrate deploy
+
+# Criar nova migration
+docker-compose exec server npx prisma migrate dev --name description
+
+# Resetar banco (CUIDADO!)
+docker-compose exec server npx prisma migrate reset
+
+# Seed do banco
+docker-compose exec server npm run prisma db seed
+
+# Acessar PostgreSQL CLI
+docker-compose exec postgres psql -U user -d boilerplate_db
+```
+
+### 5.5. Hot Reload
+
+O projeto está configurado com **hot-reload automático** via volume mount:
+
+```yaml
+volumes:
+  - .:/usr/src/app
+```
+
+**Como funciona:**
+1. Código local é montado dentro do container
+2. NestJS detecta mudanças automaticamente (`--watch`)
+3. Aplicação recarrega sem necessidade de rebuild
+
+**O que requer rebuild:**
+- Mudanças em `package.json` (novas dependências)
+- Mudanças em `Dockerfile`
+- Mudanças em configurações de build
+
+### 5.6. Conexão entre Containers
+
+Os containers se comunicam pela rede Docker `nestjs_network`.
+
+**Importante:** Use nomes de serviços como hosts:
+
+```bash
+# ❌ ERRADO (para conexões internas)
+DATABASE_URL=postgresql://user:password@localhost:5432/boilerplate_db
+
+# ✅ CORRETO (usa nome do serviço)
+DATABASE_URL=postgresql://user:password@postgres:5432/boilerplate_db
+```
+
+**De fora do Docker:**
+- PostgreSQL: `localhost:5432`
+- NestJS API: `localhost:3000`
+- PgAdmin: `localhost:5050`
+
+### 5.7. Troubleshooting
+
+#### Container não inicia
+
+```bash
+# Ver logs detalhados
+docker-compose logs server
+
+# Verificar status dos containers
+docker-compose ps
+
+# Rebuild limpo
+docker-compose down -v
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+#### Migrations não executam
+
+```bash
+# Executar manualmente
+docker-compose exec server npx prisma migrate deploy
+
+# Verificar conexão com banco
+docker-compose exec server npx prisma db pull
+```
+
+#### Porta em uso
+
+```bash
+# Identificar processo usando a porta
+sudo lsof -i :3000
+
+# Ou mudar porta no docker-compose.yml
+ports:
+  - "3001:3000"  # Host:Container
+```
+
+#### Hot-reload não funciona
+
+```bash
+# Verificar se volume está montado corretamente
+docker-compose exec server ls -la /usr/src/app
+
+# Reiniciar container
+docker-compose restart server
+```
+
+---
+
+## 6. Configuração
+
+### 6.1. Variáveis de Ambiente
 
 O projeto usa um sistema de configuração type-safe com validação em tempo de startup.
 
@@ -253,7 +484,8 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:3001
 #################################
 # Database
 #################################
-DATABASE_URL=postgresql://user:password@localhost:5432/boilerplate_db
+# IMPORTANTE: Use 'postgres' como host (nome do serviço Docker)
+DATABASE_URL=postgresql://user:password@postgres:5432/boilerplate_db
 
 #################################
 # JWT Authentication
@@ -282,7 +514,7 @@ AUTH_THROTTLE_TTL=60
 AUTH_THROTTLE_LIMIT=5
 ```
 
-### 5.2. Validação de Ambiente
+### 6.2. Validação de Ambiente
 
 As variáveis são validadas usando Zod em [src/config/env.schema.ts](src/config/env.schema.ts):
 
@@ -301,7 +533,7 @@ export const envSchema = z.object({
 
 **Se uma variável obrigatória estiver faltando ou inválida, a aplicação não inicia.**
 
-### 5.3. Acesso às Configurações
+### 6.3. Acesso às Configurações
 
 **❌ NUNCA faça:**
 ```typescript
@@ -867,6 +1099,18 @@ describe('CreateUserUseCase', () => {
 });
 ```
 
+**Executar:**
+```bash
+# Rodar todos os testes unitários
+docker-compose exec server npm test
+
+# Modo watch
+docker-compose exec server npm run test:watch
+
+# Com cobertura
+docker-compose exec server npm run test:cov
+```
+
 **Princípios:**
 - Usar padrão AAA (Arrange-Act-Assert)
 - Mockear todas as dependências
@@ -882,40 +1126,28 @@ Os testes E2E requerem um banco de dados PostgreSQL separado.
 **1. Criar banco de testes:**
 
 ```bash
-# Entrar no container PostgreSQL
-docker exec -it postgres_db psql -U user
-
-# Criar banco de testes
-CREATE DATABASE boilerplate_test;
-\q
+# Criar banco de testes no PostgreSQL
+docker-compose exec postgres psql -U user -d boilerplate_db -c "CREATE DATABASE boilerplate_test;"
 ```
 
 **2. Configurar `.env.test`:**
 
 ```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/boilerplate_test
+# Use 'postgres' como host (nome do serviço Docker)
+DATABASE_URL=postgresql://user:password@postgres:5432/boilerplate_test
 ```
 
 **3. Rodar migrations:**
 
-Você tem duas opções:
-
-**Opção A: Da sua máquina local (se tiver acesso ao banco):**
 ```bash
-DATABASE_URL="postgresql://user:password@localhost:5432/boilerplate_test" npx prisma migrate deploy
-```
-
-**Opção B: De dentro do container da aplicação:**
-```bash
-docker exec -it <container_da_aplicacao> sh
-DATABASE_URL="postgresql://user:password@localhost:5432/boilerplate_test" npx prisma migrate deploy
-exit
+# Executar migrations no banco de testes
+docker-compose exec server sh -c "DATABASE_URL='postgresql://user:password@postgres:5432/boilerplate_test' npx prisma migrate deploy"
 ```
 
 **4. Rodar testes:**
 
 ```bash
-npm run test:e2e
+docker-compose exec server npm run test:e2e
 ```
 
 #### Estrutura de Teste E2E
@@ -1017,12 +1249,12 @@ Adicione no README:
 
 ```bash
 # Testes unitários
-npm test                # Rodar todos os testes unitários
-npm run test:watch      # Modo watch
-npm run test:cov        # Com cobertura
+docker-compose exec server npm test                # Rodar todos os testes unitários
+docker-compose exec server npm run test:watch      # Modo watch
+docker-compose exec server npm run test:cov        # Com cobertura
 
 # Testes E2E
-npm run test:e2e        # Rodar testes E2E
+docker-compose exec server npm run test:e2e        # Rodar testes E2E
 ```
 
 ---
@@ -1238,15 +1470,24 @@ http://localhost:3000/api/docs
 
 ## 11. Guia de Desenvolvimento
 
+> 🐳 **Nota:** Todos os comandos de desenvolvimento devem ser executados dentro do container usando `docker-compose exec server <comando>` ou acessando o shell com `docker-compose exec server sh`.
+
 ### 11.1. Como Criar um Novo Módulo
 
 Vamos criar um módulo de "Posts" como exemplo.
 
 #### 1. Criar Estrutura de Pastas
 
+Você pode criar a estrutura diretamente no host (seus arquivos locais) ou dentro do container:
+
 ```bash
+# Opção 1: No host (recomendado - mais fácil)
 mkdir -p src/modules/posts/{application/use-cases,domain/{entities,repositories},infra/repositories,dto}
 touch src/modules/posts/{posts.controller.ts,posts.module.ts}
+
+# Opção 2: Dentro do container
+docker-compose exec server sh -c "mkdir -p src/modules/posts/{application/use-cases,domain/{entities,repositories},infra/repositories,dto}"
+docker-compose exec server sh -c "touch src/modules/posts/{posts.controller.ts,posts.module.ts}"
 ```
 
 #### 2. Definir Schema no Prisma
@@ -1267,7 +1508,7 @@ model Post {
 
 Rodar migration:
 ```bash
-npx prisma migrate dev --name add_posts
+docker-compose exec server npx prisma migrate dev --name add_posts
 ```
 
 #### 3. Criar Entidade de Domínio
@@ -1451,31 +1692,37 @@ export class AppModule {}
 ### 11.4. Comandos Úteis
 
 ```bash
-# Desenvolvimento
-npm run start:dev          # Rodar em modo watch
-npm run build              # Build para produção
-npm run start:prod         # Rodar build de produção
+# Docker - Gerenciamento do Ambiente
+docker-compose up -d                          # Subir todos os serviços
+docker-compose down                           # Parar todos os serviços
+docker-compose down -v                        # Parar e remover volumes
+docker-compose logs -f server                 # Ver logs em tempo real
+docker-compose up -d --build                  # Rebuild e subir
+docker-compose exec server sh                 # Acessar shell do container
+
+# Desenvolvimento (dentro do container)
+docker-compose exec server npm run start:dev  # Já roda automaticamente!
+docker-compose exec server npm run build      # Build para produção
 
 # Banco de Dados
-npx prisma migrate dev     # Criar e aplicar migration
-npx prisma migrate deploy  # Aplicar migrations (produção)
-npx prisma generate        # Gerar Prisma Client
-npx prisma studio          # Abrir interface visual do banco
+docker-compose exec server npx prisma migrate dev --name description  # Criar migration
+docker-compose exec server npx prisma migrate deploy                  # Aplicar migrations
+docker-compose exec server npx prisma generate                        # Gerar Prisma Client
+docker-compose exec server npx prisma studio                          # Interface visual do banco
+docker-compose exec server npm run prisma db seed                     # Popular banco
+
+# PostgreSQL CLI
+docker-compose exec postgres psql -U user -d boilerplate_db           # Acessar PostgreSQL
 
 # Testes
-npm test                   # Testes unitários
-npm run test:watch         # Testes em modo watch
-npm run test:cov           # Testes com cobertura
-npm run test:e2e           # Testes E2E
+docker-compose exec server npm test                   # Testes unitários
+docker-compose exec server npm run test:watch         # Testes em modo watch
+docker-compose exec server npm run test:cov           # Testes com cobertura
+docker-compose exec server npm run test:e2e           # Testes E2E
 
 # Qualidade de Código
-npm run lint               # Rodar ESLint
-npm run format             # Formatar código com Prettier
-
-# Docker
-docker-compose up -d       # Subir PostgreSQL + PgAdmin
-docker-compose down        # Parar containers
-docker-compose logs -f     # Ver logs
+docker-compose exec server npm run lint               # Rodar ESLint
+docker-compose exec server npm run format             # Formatar código com Prettier
 ```
 
 ---

@@ -4,6 +4,8 @@ services:
     container_name: postgres_db
     ports:
       - "5432:5432"
+    networks:
+      - nestjs_network
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -21,6 +23,8 @@ services:
     container_name: pgadmin_boilerplate
     ports:
       - "5050:80"
+    networks:
+      - nestjs_network
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin123
@@ -30,6 +34,30 @@ services:
       postgres:
         condition: service_healthy
 
+  server:
+    container_name: nestjs_boilerplate
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - nestjs_network
+    volumes:
+      - .:/usr/src/app
+
 volumes:
   postgres_data:
   pgadmin_data:
+
+networks:
+  nestjs_network:
+    name: nestjs_network
+
