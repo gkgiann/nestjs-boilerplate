@@ -62,9 +62,10 @@ Boilerplate de API REST construído com NestJS seguindo princípios de **Clean A
 
 ## 📋 Pré-requisitos
 
-- **Node.js** 18+ ([Download](https://nodejs.org/))
 - **Docker** & **Docker Compose** ([Download](https://www.docker.com/))
-- **npm** ou **yarn**
+- **Git** ([Download](https://git-scm.com/))
+
+> 💡 **Nota:** Não é necessário ter Node.js instalado localmente! Todo o desenvolvimento é feito dentro de containers Docker.
 
 ---
 
@@ -77,13 +78,7 @@ git clone <repository-url>
 cd nestjs-boilerplate
 ```
 
-### 2. Instalar Dependências
-
-```bash
-npm install
-```
-
-### 3. Configurar Variáveis de Ambiente
+### 2. Configurar Variáveis de Ambiente
 
 ```bash
 cp .env.example .env
@@ -92,8 +87,8 @@ cp .env.example .env
 Edite o arquivo `.env` e configure as variáveis obrigatórias:
 
 ```bash
-# Banco de Dados
-DATABASE_URL=postgresql://user:password@localhost:5432/boilerplate_db
+# Banco de Dados (host interno do Docker)
+DATABASE_URL=postgresql://user:password@postgres:5432/boilerplate_db
 
 # JWT Secrets (IMPORTANTE: Use valores seguros em produção!)
 JWT_ACCESS_SECRET=sua-chave-secreta-de-acesso-com-pelo-menos-32-caracteres
@@ -104,28 +99,27 @@ NODE_ENV=development
 PORT=3000
 ```
 
-> ⚠️ **IMPORTANTE:** Os secrets JWT devem ter no mínimo 32 caracteres. Gere valores seguros para produção!
+> ⚠️ **IMPORTANTE:** 
+> - Os secrets JWT devem ter no mínimo 32 caracteres
+> - Use `postgres` como host do banco (nome do serviço no Docker)
 
-### 4. Subir o Banco de Dados com Docker
+### 3. Subir o Ambiente Completo
 
 ```bash
 docker-compose up -d
 ```
 
-Isso iniciará:
+Isso iniciará todos os serviços:
+- **NestJS API** na porta 3000 (com hot-reload)
 - **PostgreSQL** na porta 5432
 - **PgAdmin** na porta 5050 (acesso: admin@admin.com / admin123)
 
-### 5. Executar Migrations
+As migrations são executadas automaticamente na inicialização! ✨
+
+### 4. (Opcional) Popular o Banco com Dados Iniciais
 
 ```bash
-npx prisma migrate deploy
-```
-
-### 6. (Opcional) Popular o Banco com Dados Iniciais
-
-```bash
-npx prisma db seed
+docker-compose exec server npm run prisma db seed
 ```
 
 ---
@@ -134,33 +128,60 @@ npx prisma db seed
 
 ### Desenvolvimento
 
-```bash
-npm run start:dev
-```
+O ambiente já está rodando após `docker-compose up -d`! 🎉
 
 A API estará disponível em:
 - **API:** http://localhost:3000/api/v1
 - **Swagger:** http://localhost:3000/api/docs
 - **Health Check:** http://localhost:3000/api/v1/health
+- **PgAdmin:** http://localhost:5050
 
-### Produção
+### Comandos Docker Úteis
 
 ```bash
-npm run build
-npm run start:prod
+# Ver logs em tempo real
+docker-compose logs -f server
+
+# Parar todos os serviços
+docker-compose down
+
+# Rebuild da imagem (após mudanças no Dockerfile ou package.json)
+docker-compose up -d --build
+
+# Acessar o shell do container
+docker-compose exec server sh
+```
+
+### Hot Reload
+
+O projeto está configurado com **hot-reload automático**! Qualquer alteração nos arquivos TypeScript será detectada e a aplicação recarregará automaticamente.
+
+### Executar Comandos no Container
+
+Para executar comandos do projeto, use `docker-compose exec server`:
+
+```bash
+# Exemplos:
+docker-compose exec server npm run lint
+docker-compose exec server npm run format
+docker-compose exec server npx prisma studio
+docker-compose exec server npx prisma migrate dev
 ```
 
 ### Outros Comandos
 
 ```bash
 # Formatar código
-npm run format
+docker-compose exec server npm run format
 
 # Lint
-npm run lint
+docker-compose exec server npm run lint
 
 # Prisma Studio (interface visual do banco)
-npx prisma studio
+docker-compose exec server npx prisma studio
+
+# Gerar Prisma Client
+docker-compose exec server npx prisma generate
 ```
 
 ---
@@ -256,65 +277,55 @@ curl -X GET http://localhost:3000/api/v1/users/me \
 
 ### Testes Unitários
 
-Testam use cases isoladamente (com mocks).
+Testam use cases isoladamente (com mocks). Não requerem banco de dados.
 
 ```bash
 # Rodar todos os testes
-npm test
+docker-compose exec server npm test
 
 # Modo watch
-npm run test:watch
+docker-compose exec server npm run test:watch
 
 # Com cobertura
-npm run test:cov
+docker-compose exec server npm run test:cov
 ```
 
 ### Testes E2E
 
-Testam a API completa (requerem banco de dados de testes).
+Testam a API completa dentro do ambiente Docker.
 
 #### Configuração Inicial
 
 **1. Criar banco de dados de testes:**
 
 ```bash
-# Entrar no container PostgreSQL
-docker exec -it postgres_db psql -U user -d boilerplate_db
-
-# Criar banco de testes
-CREATE DATABASE boilerplate_test;
-\q
+# Criar banco de testes no PostgreSQL
+docker-compose exec postgres psql -U user -d boilerplate_db -c "CREATE DATABASE boilerplate_test;"
 ```
 
 **2. Configurar variável de ambiente no arquivo `.env.test`:**
 
 ```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/boilerplate_test
+# Note: use 'postgres' como host (nome do serviço Docker)
+DATABASE_URL=postgresql://user:password@postgres:5432/boilerplate_test
 ```
 
 **3. Executar migrations no banco de testes:**
 
 ```bash
-# Entrar no container da aplicação (se estiver rodando)
-docker exec -it nestjs_boilerplate /bin/bash
-
-# Executar migrations
-DATABASE_URL="postgresql://user:password@localhost:5432/boilerplate_test" npx prisma migrate deploy
-
-# Sair do container
-exit
+docker-compose exec server sh -c "DATABASE_URL='postgresql://user:password@postgres:5432/boilerplate_test' npx prisma migrate deploy"
 ```
 
 #### Executar Testes E2E
 
 ```bash
-npm run test:e2e
+docker-compose exec server npm run test:e2e
 ```
 
 Os testes E2E irão:
 1. Conectar ao banco `boilerplate_test`
 2. Limpar o banco antes de cada teste (`resetDatabase()`)
-3. Testar os endpoints da API
+3. Testar os endpoints da API completos
 4. Verificar respostas e status HTTP
 
 ---
